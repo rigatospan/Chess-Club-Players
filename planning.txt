@@ -1,0 +1,14 @@
+step1: built a csv/database with the players info
+- get info content from the eso site of players and parse it accordingly (Done)
+- get the fide elo of players (Done)
+- get phones and emails (optional)
+- update the database once a month (at the beggining) to update elo
+- construct SQL databases instead of CSV files
+
+step2: built a GUI to constract teams
+- search engine the database and present the players fulfiling the critiria of search
+- select players to include to the team and sort them by critiria, i.e. fide or national elo, age, gender, etc.
+- handle many teams
+- set different critiria for each team, i.e. elo, gender, age
+- built a pdf export with the composition of the team 
+- automatically send emails to inform about the composition (optional)
