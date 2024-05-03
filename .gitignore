@@ -4,8 +4,17 @@
 # CSV files
 *.csv
 
+# pkl files
+*.pkl
+
+# json files
+*.json
+
+# pdf files
+*.pdf
+
 # scratch python files
-scratch.py
+scratch*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
