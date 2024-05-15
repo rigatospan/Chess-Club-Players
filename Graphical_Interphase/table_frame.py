@@ -1,7 +1,7 @@
-from tkinter import *
-from tkinter.ttk import Treeview
-from tkinter.ttk import *
+from tkinter import LabelFrame
+from tkinter.ttk import Treeview, Style, Scrollbar
 from tkinter.font import Font
+
 from bs4 import BeautifulSoup
 import webbrowser
 
@@ -15,7 +15,7 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         
         self.parent = parent
 
-        # create a copy of the restricted database so we can sorted without affecting the users restrcions
+        # create a copy of the original database so we can sorted/search it without affecting the users restrcions
         self.dataframe = self.parent.original_database.copy()
 
         # set two attributes to control when a column is clicked to sort it
@@ -24,7 +24,9 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         self.sort_column = None
         self.sort_direction = None
         
+        # create a list of the columns to present; the user modifies this
         self.columns_to_show = self.parent.original_database_headers_to_show.copy()
+        # this points to the list of the all the columns
         self.all_headers = self.parent.original_database_all_headers
 
         self.tree = Treeview(self, 
@@ -37,7 +39,8 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         # set the total default width of the tree
         self.tree_width = self.parent.tree_width
         
-        # set all the headers and columns for the tree and initiallize the tree width
+        # set all the headers and columns of the tree to all the header in the original database  
+        # and initiallize the tree width
         n = len(self.all_headers)
         for col in self.all_headers:
 
@@ -93,12 +96,16 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
                               )
 
     def add_rows(self):
+        '''Clears the existing rows in the treeview 
+        and insert the current rows in the database to the treeview.
+        '''
+
         self.dataframe = self.dataframe.reset_index(drop=True)
         # Clear existing items in the Treeview
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # Add data to the treeview
+        # Add data to the treeview; make the background of the even rows light-blue
         for i, row in self.dataframe.iterrows():
             text, url = self.extract_info(row['Fide ID'])
             row['Fide ID'] = text
@@ -110,6 +117,8 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         self.tree.tag_configure("even_row", background="lightblue")
 
     def modify_display_columns(self):
+        ''' Change the columns that are presents in the Treeview, without changing the tree width.
+        '''
 
         # check if there is a database
         if len(self.dataframe) == 0:
@@ -120,19 +129,19 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         if n == 0:
             return
 
-        # set the total width of the displayed columns equal to the fixed width of the tree
+        # set the total width of the displayed columns equal to the default width of the tree
         for col in self.columns_to_show:
             self.tree.column(col,
                              width=self.tree_width//n)
         
-        # update the tree to fix its width to the current displayed columns
+        # update the displayed columns of the tree to fix its width to the default width
         self.tree.configure(displaycolumns=self.columns_to_show)
-
+          
+        # find the appropreate width for each column to show
         col_max_widths = {}
-        # change the width of the columns to their appropreate size, but not the width of the tree
         for col in self.columns_to_show:
 
-            # find the appropriate width for each column; only search for the maximum name
+            # only search for the maximum length of the names
             if self.dataframe[col].count() == 0:
                 max_width_column = Font().measure(col) + 8
             elif col == 'National Name':
@@ -148,17 +157,19 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
 
             col_max_widths[col] = max_width_column
         
-        # check if the sum of the width exides the width of the tree; in that case allocate the remaining pixels equally to each column
+        # check if the sum of the columns widths exides the width of the tree; 
+        # in that case allocate the remaining pixels equally to each column
         s = sum(list(col_max_widths.values()))
         
         width_diff_aver = max((self.tree_width - s)//n , 0) 
 
-        # place the remaining pixel from the eucledean division in the first column
+        # we could place the remaining pixel from the eucledean division in the first column
         # if width_diff_aver>0:
         #     remaining_pixels = (self.tree_width - s)%n
         # else:
         #     remaining_pixels = 0
 
+        # change the width of the columns to their appropreate size, but not the width of the tree
         for col in self.columns_to_show:
 
             min_width_column = col_max_widths[col]//2
@@ -168,9 +179,12 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
                              width= col_max_widths[col] + width_diff_aver,
                              minwidth= min_width_column
                             )
-
+        
+        return
 
     def sort_by_column(self, column):
+        '''Sorts the database wrt to the clicked column and then calls the add_rows()
+        '''
 
         if self.sort_column == column:
             self.sort_direction = not self.sort_direction
@@ -183,16 +197,19 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
 
         self.add_rows()
 
-    # Function to extract text and URL from HTML tags
     def extract_info(self, html):
+        '''Extracts text and URL from HTML tags
+        '''
+
         soup = BeautifulSoup(html, 'html.parser')
         text = soup.get_text()
         url = soup.a['href']
         return text, url
     
-    # Function to open URL in default web browser
     def open_url(self, event):
-        
+        '''When double click on a Fide ID, opens the URL in the default web browser
+        '''
+
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
         col_name = self.tree.column(col, option="id")
@@ -204,6 +221,8 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
             webbrowser.open_new(url)
 
     def enter_fide_id_col(self, event):
+        '''Change the cursor to a hand2 cursor when above the fide id column
+        '''
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
         col_name = self.tree.column(col, option="id")

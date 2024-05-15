@@ -1,6 +1,5 @@
-from tkinter import *
-from tkinter.ttk import *
-from tkinter import messagebox
+from tkinter import messagebox, Tk, PhotoImage
+from tkinter.ttk import Notebook, Frame
 
 import pandas as pd
 import os
@@ -49,17 +48,40 @@ class root(Tk):
             messagebox.showinfo('Update Database', 'Please update database to get the latest elo!')
 
     def initialize_database(self,):
+        '''Search in the cwd for pkl files and upload the most recent one as the original database.
+        It also retrieves the corresponding .json file with the team's additional info.
+        If no database exists at the moment it sets the original database to an empty DataFrame.
+        Sets the attributes: self.original_database, self.number_of_players, self.database_date_modified,
+        self.clubs_eso_players_url from the info in the json file
+
+        Example 1: so_aigaleo.pkl , so_aigaleo.json is the most recent
+        Action: self.original_database = pd.read_pickle('so_aigaleo.pkl')
+                self.database_date_modified = '2024-05-04'
+                self.database_time_modified = '20:58'
+                self.number_of_players = 458
+                self.team_name = 'so_aigaleo'
+        
+        Example 2: no database
+        Action: self.original_database = pd.DataFrame({})
+                self.team_name = 'No Database at the moment'
+                self.database_date_modified = '2024-05-04'
+                self.database_time_modified = '20:58'
+                self.number_of_players = 0
+        '''
         
         # find all databases in the current directory and choose the latest modified
         databases = [file for file in os.listdir() if file.endswith('.pkl') ]
         
+        # if there is no database set the attributes to specific Null values
         if len(databases) == 0:
             self.original_database = pd.DataFrame({})
             self.team_name = 'No Database at the moment'
             self.number_of_players = 0
             self.database_date_modified = datetime.today().date()
+            self.database_time_modified = datetime.today().time().isoformat('minutes')
             return
         
+        # create a dictionary with datestamp : database_name pairs 
         dates = {}
         for dat in databases:
             timestamp = os.path.getmtime(dat)
@@ -90,11 +112,14 @@ class root(Tk):
                     self.number_of_players = teams_info_dic['Number of Players']
 
     def initialize_root(self):
+        '''Create the main frames of the application.
+        '''
 
-        # self.original_database = database
+        # create an index column that starts at 1
         self.original_database = self.original_database.reset_index()
         self.original_database['index'] = self.original_database['index']+1
 
+        # set all the headers that exist in the database and a default headers list to present to the user
         self.original_database_all_headers = list(self.original_database.columns)
         self.original_database_headers_to_show = ['index',
                                                   'National Name',
@@ -104,24 +129,28 @@ class root(Tk):
                                                   'Gender',
                                                   'National ID',
                                                   ]
-
+        
+        # create a dictionare that will hold the frames of the created teams as pairs 'team_name' : Frame
         self.created_teams_dic = {}
 
-        #-----------------------------Left Side Frame-------------------------------------------
-        self.left_side_frame = Frame(self, )
-     
-        # side frame 1: Search the Players Database
-        self.side_frame_1 = SideFrame1(self.left_side_frame, self)
+        #-----------------------------Left Side Frame-------------------------------------------------------
+        # define the style of the left frames
         
-        self.side_frame_1.grid(row=0, 
+        self.left_side_frame = Frame(self,
+                                     )
+        
+        # left side frame 1: Search the Players Database
+        self.left_side_frame_1 = SideFrame1(self.left_side_frame, self)
+        
+        self.left_side_frame_1.grid(row=0, 
                                column=0 , 
                                padx= 10, 
                                pady= 10, 
                                )
 
         # side frame 2: Create new teams
-        self.side_frame_2 = SideFrame2(self.left_side_frame, self)
-        self.side_frame_2.grid(row=1, 
+        self.left_side_frame_2 = SideFrame2(self.left_side_frame, self)
+        self.left_side_frame_2.grid(row=1, 
                                column=0 , 
                                padx= 10, 
                                pady= 10, 
@@ -135,8 +164,9 @@ class root(Tk):
                              )
         
         #-----------------------------------Middle Up Database Frame-----------------------
-        # Players Database Frame
+        # Players Database Frame; set the initial width of the tree
         self.tree_width = 765
+
         self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
         self.table_to_show_frame.grid(row=0, 
                                       column=1, 
@@ -144,29 +174,25 @@ class root(Tk):
                                       pady= 10, 
                                       sticky='n',
                                       )
+        
         # update the root to fix the tree width 
         self.update()
         # add the displayed columns to the tree without changing its width
         self.table_to_show_frame.modify_display_columns()
 
-        # Middle down teams notebook-frames
+        # Middle down teams notebook- created teams frames
         self.teams_selection_notebook = Notebook(self, )    
-        
         self.teams_selection_notebook.grid(row=1,
                                          column=1,
                                          padx=10,
                                          pady=5,
                                          sticky='n',
                                          )
-        # self.teams_selection_notebook.grid_propagate(False)
-        
-        
         
         #---------------Right Side Frame----------------------------------------
         self.right_side_frame = Frame(self,)
 
         self.configure_table_columns_frame = ConfigureTableColumnsFrame(self.right_side_frame, self)
-
         self.configure_table_columns_frame.grid(row=0,
                                                 column=0,
                                                 padx=10,
@@ -175,7 +201,6 @@ class root(Tk):
                                                 )
         
         self.select_player_to_teams_frame = SelectPlayersToTeamsFrame(self.right_side_frame, self)
-
         self.select_player_to_teams_frame.grid(row=1, 
                                                column=0,
                                                padx = 10,
@@ -202,8 +227,18 @@ class root(Tk):
                                    )                           
         
     def create_new_team(self,):
+        '''Creates a new team's frame in the notebook with the info of the entries in the left_side_frame2.
+        and adds the team's frame to the created_teams_dic with key the team's name.
+        We identify each team's frame by the teams name.
+        If the name of the team exist in the dictionary then it updates the information of the match
+        for that team to the current entries.
+        '''
         # get the new team's info
-        new_team_info_dic = self.side_frame_2.get_teams_info()
+        new_team_info_dic = self.left_side_frame_2.get_teams_info()
+
+        # 14/5/23 maybe do not allow a team with no name
+        # if new_team_info_dic["Team's Name:"] == '':
+        #     return
 
         # check if the same name's team is already created
         if new_team_info_dic["Team's Name:"] not in self.created_teams_dic.keys(): 
@@ -220,6 +255,7 @@ class root(Tk):
             self.update()
 
             # add the displayed columns to the team's tree without changing the tree width
+            # to do that we need to update every team's frame in the notebook
             for frame in self.created_teams_dic.values():
                 self.teams_selection_notebook.select(frame)
                 self.update()
@@ -237,9 +273,9 @@ class root(Tk):
             # update the match info and labels
             self.created_teams_dic[new_team_info_dic["Team's Name:"]].update_match_info(new_team_info_dic)
 
-
-
     def update_database(self,):
+        '''Update the original database and all the info of the team.
+        '''
         club = FetchPlayersDatabase(self, self.clubs_eso_players_url)
 
         # async database update
@@ -251,7 +287,6 @@ class root(Tk):
 
         self.initialize_database()
         self.initialize_root()
-
 
 if __name__ == '__main__':
 

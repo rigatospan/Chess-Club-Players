@@ -1,9 +1,7 @@
-from tkinter import Frame
-from tkinter import *
-from tkinter.ttk import Treeview
-from tkinter.ttk import *
+from tkinter.ttk import Treeview, Button, Entry, Label, Frame, Style, Scrollbar
 from tkinter.font import Font
 from tkinter import messagebox
+
 import pandas as pd
 from bs4 import BeautifulSoup
 import webbrowser
@@ -32,9 +30,7 @@ class TeamsCreation(Frame):
         self.sort_column = None
         self.sort_direction = None
 
-        # ---------------------------------set the labels for the match --------------------------------
-        
-        
+        # ---------------------------------set the labels for the match -------------------------------- 
         self.game_label = Label(self, 
                     #   text=self.game_title,
                       font=('Arial', 14),
@@ -44,7 +40,6 @@ class TeamsCreation(Frame):
                                     #   text=f'Tournament: {self.tournmanet}' ,
                                     #   font=('Arial', 12),
                                       )
-        
         
         self.boards_label = Label(self,
                                 #   text=f'Boards: {self.number_boards}',
@@ -72,6 +67,7 @@ class TeamsCreation(Frame):
                                            width=40,
                                            )
         
+        # update the content of the labels
         self.update_match_info(new_team_info_dic)
         
         self.game_label.grid(row=0,
@@ -194,11 +190,12 @@ class TeamsCreation(Frame):
                               sticky='ew',
                               )
 
-        #----------------------------------Add Button to take actions on the tree and the team-frame----------------
+        #----------------------------------Add Buttons to take actions on the tree and the team-frame----------------
         self.remove_team_button= Button(self,
                                    text='Remove Team',
                                    command= self.remove_team,
                                    )
+        
         self.remove_team_button.grid(row=5,
                                 column=0,
                                 padx=5,
@@ -254,6 +251,8 @@ class TeamsCreation(Frame):
     
     #-----------------------------------------------------------------------------------------------------
     def update_match_info(self, new_team_info_dic):
+        '''Update the content of the info labels for the match to those in the team's info dictionary.
+        '''
         
         self.team_name = new_team_info_dic["Team's Name:"]
         self.opponent_team_name = new_team_info_dic["Opp. Team's Name:"]
@@ -299,7 +298,8 @@ class TeamsCreation(Frame):
                                    )
             
     def modify_display_columns(self):
-
+        ''' Change the columns that are presents in the Treeview, without changing the tree width.
+        '''
         # check if there is a database
         if len(self.parent.original_database) == 0:
             return
@@ -351,9 +351,13 @@ class TeamsCreation(Frame):
                              minwidth= min_width_column
                             )
             
+        # add the rows since initially the team_dataframe is empty
         self.add_rows()
     
     def add_rows(self):
+        '''Clears the existing rows in the treeview 
+        and insert the current rows in the database to the treeview.
+        '''
         self.team_dataframe = self.team_dataframe.reset_index(drop=True)
         # Clear existing items in the Treeview
         for item in self.tree.get_children():
@@ -397,14 +401,21 @@ class TeamsCreation(Frame):
             self.tree.configure(cursor='')
 
     def remove_player(self):
-        
+        '''Removes the selected players from the team_dataframe
+        '''
+        # find the index of the selected players; note that the index column starts at 1 not 0; subtract 1
         indices_to_remove = [self.tree.item(item_remove)['values'][0]-1 for item_remove in self.tree.selection()] 
-
+        
+        # remove the row with the selected index, reset the index, start it at 1
         self.team_dataframe = self.team_dataframe.drop(indices_to_remove).reset_index(drop=True)
         self.team_dataframe['index'] = self.team_dataframe.index+1
         self.add_rows()
 
+        return
+
     def move_player_up(self):
+        '''Moves the seleced player one position up
+        '''
 
         if len(self.tree.selection()) == 1:
             # get the selected player
@@ -423,6 +434,8 @@ class TeamsCreation(Frame):
             messagebox.showinfo('Move Player', 'Please select one player to move up or down')
     
     def move_player_down(self):
+        '''Moves the seleced player one position up
+        '''
 
         if len(self.tree.selection()) == 1:
             ind = self.tree.item(self.tree.selection()[0])['values'][0]-1
@@ -438,6 +451,11 @@ class TeamsCreation(Frame):
 
     
     def update_team_database(self, new_database_to_add):
+        '''Adds the players in the dataframe new_database_to_add to the teams_dataframs.
+        Checks if the total number of players excided the number of boards and terminates the process,
+        if a player already exists on that team and terminates the process,
+        and if a player is on another team which is allowed.
+        '''
         
         if len(self.team_dataframe)+len(new_database_to_add)> self.number_boards:
             messagebox.showinfo('Number of Boards', 'You excided the number of boards for that team')
@@ -457,10 +475,11 @@ class TeamsCreation(Frame):
 
         for new_player in new_players:
             if new_player in team_plyers_selected:
-                answer = messagebox.askquestion('Plyers on two teams', f'{new_player} is also on another team, procced?')
+                answer = messagebox.askquestion('Player on two teams', f'{new_player} is also on another team, procced?')
                 if answer == 'no':
                     return
-
+        
+        # add the new players to the teams dataframe
         if self.team_dataframe.empty:
             self.team_dataframe = new_database_to_add
         else: 
@@ -469,6 +488,7 @@ class TeamsCreation(Frame):
         self.team_dataframe['index'] = self.team_dataframe.index+1
         
         # move to the tab of the selected team
+        # 14/5/24 maybe I can simple add the rows
         self.parent.teams_selection_notebook.select(self)
         self.parent.update()
         self.modify_display_columns()
@@ -476,12 +496,16 @@ class TeamsCreation(Frame):
         return
 
     def remove_team(self):
+        '''remove the team's frame, both from the notebook and from the parent.teams_frame_dic
+        '''
+
+        # ask the user for permission to remove the team
         answer = messagebox.askyesno('Remove Team', f'Do you want to remove the team {self.team_name}?')
         if answer == True:
             # remove frame from the notebook 
             self.parent.teams_selection_notebook.forget(self)
 
-            # remove key-value team_name : frame from the dictionary 
+            # remove key-value, team_name : frame, from the dictionary 
             _ = self.parent.created_teams_dic.pop(self.team_name)
 
             # update the combobox list of values
@@ -494,6 +518,8 @@ class TeamsCreation(Frame):
         return
     
     def export_to_pdf(self):
+        '''Creates a pdf with the match info in the cwd
+        '''
         
         # make the necessary modifications to the database
         database_to_print = self.team_dataframe[self.columns_to_show]
@@ -562,6 +588,8 @@ class TeamsCreation(Frame):
         doc.build(pdf_elements_list)
 
     def sort_by_column(self, column):
+        '''Sorts the database wrt to the clicked column and then calls the add_rows()
+        '''
 
         if self.sort_column == column:
             self.sort_direction = not self.sort_direction

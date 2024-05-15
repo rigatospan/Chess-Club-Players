@@ -1,16 +1,16 @@
-import requests
-import csv
-import pandas as pd
+import re
+import os
 from datetime import datetime
-import json
 import time
+
+import csv
+import json
+import pandas as pd
 
 import asyncio
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
-import re
-import os
-
+import requests
 
 class FetchPlayersDatabase:
 

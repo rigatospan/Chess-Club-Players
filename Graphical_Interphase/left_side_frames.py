@@ -1,13 +1,12 @@
-from tkinter import Frame
-from tkinter import *
-from tkinter.ttk import Combobox
-from tkinter.ttk import *
+from tkinter import END
+from tkinter.ttk import Frame, Label, Combobox, Entry, Button
 import re
 
 class SideFrame1(Frame):
 
     def __init__(self, side_frame, parent):
-        super().__init__(side_frame)
+
+        super().__init__(side_frame, )
         
         # get the parent
         self.parent = parent
@@ -19,7 +18,6 @@ class SideFrame1(Frame):
         self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=10 )
         
         # list all label and value restricitons
-
         self.restrictions_labels = []
         self.restrictions_values = []
 
@@ -162,21 +160,45 @@ class SideFrame1(Frame):
         #------------------------------------------Methods-------------------------------------------------
 
     def clear_restrictions(self):
-        # comboboxes
+        '''Clears the user's input on all entries and updates the database to show
+        '''
+        
+        # set the comboboxes to the default value
         for combox in self.restrictions_values[:-1]:
             combox.current(0)
-        # entry
+
+        # clear the search by name entry
         self.search_name_entry.delete(0, END)
+        
+        # update the table frame to include all players with no restrictions
         self.update_table_to_show_frame()
 
 
     def get_restrictions(self):
+        '''Returns a list of strings with all the user's entries.
+        
+        Example 1: 
+        entries: default values
+        returns: ['National Elo', 'None', 'None', 'None', 'None', 'All', 'All', 'All', '']
+        
+        Example 2:
+        
+        entries: min_elo=1000, max_elo=1200, min_age=10, max_age=20, gender='F', 
+                 Active Player: 'Yes', Eso fee paid='Yes', search by name = '' 
+        returns:['National Elo', '1000', '1200', '10', '20', 'F', 'Yes', 'Yes', '']
+        '''
+
         all_entries = [entry.get() for entry in self.restrictions_values]
+        
         return all_entries
             
 
     def apply_restrictions_to_restricted_database(self):
-        ''' Modify the parent.restricted database by applyin the restrictions to the original database
+        ''' Get the user's input values by the get_restrictions() method, 
+        apply the restriction on the parent.original_database without change it
+        and modifies the tables_to_show.database to display the database with those restrictions.
+        If the user enters a string in the search by name entry, it ignores all other restrictions.
+        The search by name entry works with both national and latin characters.
         '''
         restrictions = []
         elo_type , elo_min, elo_max , age_min, age_max, gender, fide_active, eso_fee, name_search = self.get_restrictions()
@@ -216,20 +238,21 @@ class SideFrame1(Frame):
             eso_fee_restriction = self.parent.original_database['Eso Fee'] == eso_fee
             restrictions.append(eso_fee_restriction)
 
-        if len(name_search) > 0:
-            # if the user enters a string return all matches and ignore the other restrictions
-            
+        # if the user enters a string return all matches and ignore the other restrictions
+        if len(name_search) > 0:        
             # search for the national name match; only upper letters here
             row_index_match_national = [i for i in self.parent.original_database['National Name'].index if re.search(name_search.upper(), self.parent.original_database['National Name'][i])]
-            # search for the Fide name match; 
             
+            # search for the Fide name match; 
             row_index_match_fide = [i for i in self.parent.original_database['Fide Name'].index if re.search(' '.join([word[0].upper()+ word[1:].lower() for word in name_search.split()]), self.parent.original_database['Fide Name'][i])]
+            
+            # apply the restrictions to the table_to_show dataframe
             self.parent.table_to_show_frame.dataframe = self.parent.original_database.iloc[row_index_match_national+row_index_match_fide]
 
             return 
 
         if len(restrictions) == 0:
-            self.parent.table_to_show_frame.dataframe =  self.parent.original_database#.sort_values(by=[elo_type], ascending= False)
+            self.parent.table_to_show_frame.dataframe =  self.parent.original_database
             return
     
         # continue if there are some restrictions to apply
@@ -240,20 +263,21 @@ class SideFrame1(Frame):
         for res in restrictions:
             all_restrictions = all_restrictions & res    
 
-        self.parent.table_to_show_frame.dataframe = self.parent.original_database[all_restrictions]#.sort_values(by=[elo_type], ascending= False)
+        # apply the restrictions to the table_to_show dataframe
+        self.parent.table_to_show_frame.dataframe = self.parent.original_database[all_restrictions]
         
         return
 
 
     def update_table_to_show_frame(self):
+        '''Modify the table_toshow database to the restrictions of the user 
+        and updates the rows in the treeview to those of the modified table_toshow database.
+        '''
         # aplly restrictions to the restricted database
         self.apply_restrictions_to_restricted_database()
 
-        # reset columns to show
+        # reset columns to show; 13/5/24 not sure if this is needed
         self.parent.table_to_show_frame.columns_to_show =  list(self.parent.original_database_headers_to_show).copy()
-
-        # update the tree in the table frame
-        # self.parent.table_to_show_frame.display_dataframe()
 
         self.parent.table_to_show_frame.add_rows()
 
@@ -263,21 +287,22 @@ class SideFrame1(Frame):
 class SideFrame2(Frame):
     
     def __init__(self, side_frame, parent):
-        super().__init__(side_frame)
+
+        super().__init__(side_frame,)
         self.parent = parent
         
         #create an attribute to store all team entries
         self.new_teams_entries_labels = []
         self.new_teams_entries= []
 
-         # set header
+         # 0. set header
         self.label_header = Label(self, 
                                   text="Create New Team", 
                                   font= ('Arial', 16),
                                   )
         self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=10 )
 
-        # Team's name
+        # 1. Team's name
         
         self.team_name_label = Label(self, 
                                      text="Team's Name:",
@@ -287,7 +312,7 @@ class SideFrame2(Frame):
         self.team_name_entry = Entry(self, )
         self.new_teams_entries.append(self.team_name_entry)
 
-        # opponent team's name
+        # 2. opponent team's name
         self.opponent_team_name_label = Label(self, 
                                               text="Opp. Team's Name:",
                                               )
@@ -296,7 +321,7 @@ class SideFrame2(Frame):
         self.opponent_team_name_entry = Entry(self, )
         self.new_teams_entries.append(self.opponent_team_name_entry)
 
-        # Tournament
+        # 3. Tournament
         self.tournament_name = Label(self, 
                                     text="Tournament:",
                                     )
@@ -305,7 +330,7 @@ class SideFrame2(Frame):
         self.tournament_name_entry = Entry(self, )
         self.new_teams_entries.append(self.tournament_name_entry)
         
-        # Date of the match
+        # 4. Date of the match
         
         self.date_of_match = Label(self, 
                                    text="Match Date:",
@@ -315,7 +340,7 @@ class SideFrame2(Frame):
         self.date_of_match_entry = Entry(self, )
         self.new_teams_entries.append(self.date_of_match_entry)
 
-        # Address
+        # 5. Address
 
         self.adrress_label = Label(self,
                                      text='Address:',
@@ -325,7 +350,7 @@ class SideFrame2(Frame):
         self.adrress_entry = Entry(self,)
         self.new_teams_entries.append(self.adrress_entry)
 
-        # round
+        # 6. Round
         self.round_label = Label(self,
                                      text='Round:',
                                      )
@@ -334,7 +359,7 @@ class SideFrame2(Frame):
         self.round_entry = Entry(self,)
         self.new_teams_entries.append(self.round_entry)
 
-        # Home court
+        # 7. Home court
         self.home_court_label = Label(self, 
                                       text="Home Court:",
                                       )
@@ -348,7 +373,7 @@ class SideFrame2(Frame):
         self.new_teams_entries.append(self.home_court_entry)
         self.home_court_entry.current(0)
 
-        # Number of Boards
+        # 8. Number of Boards
         self.number_of_players_label = Label(self, 
                                              text="Number of Boards:",
                                              )
@@ -404,6 +429,8 @@ class SideFrame2(Frame):
                                         )
     
     def clear_new_team(self):
+        '''Clears all entries.
+        '''
         self.team_name_entry.delete(0, END)
         self.opponent_team_name_entry.delete(0, END)
         self.date_of_match_entry.delete(0, END)
@@ -419,9 +446,12 @@ class SideFrame2(Frame):
     def get_teams_info(self):
         '''returns a dictionary with keys the text of the labels
          and values the current entries in the coresponding entries
+         For example it returns:
+
+         {"Team's Name:": 'So Aigaleo', "Opp. Team's Name:": 'So Peristeriou', 
+          'Tournament:': 'A Category 2024', 'Match Date:': '22/4/24', 
+          'Address:': 'Soutzou 1, Aigaleo', 'Round:': '2', 
+          'Home Court:': 'Yes', 'Number of Boards:': '10'}
          '''
 
         return {label.cget('text'):entry.get() for label, entry in zip(self.new_teams_entries_labels, self.new_teams_entries) }
-
-
-# -------------------------------------------------------------------------------------------------------------------------
