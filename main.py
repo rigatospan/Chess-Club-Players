@@ -1,5 +1,5 @@
 from tkinter import messagebox, Tk, PhotoImage
-from tkinter.ttk import Notebook, Frame
+from tkinter.ttk import Notebook, Frame, Style
 
 import pandas as pd
 import os
@@ -135,7 +135,22 @@ class root(Tk):
 
         #-----------------------------Left Side Frame-------------------------------------------------------
         # define the style of the left frames
+        self.style = Style()
+        backgrond_colour = "#34495E"
+        self.style.configure('TLabelFrame',
+                             background='red',
+                             font = ('Helvetica', 14, 'bold'),
+                             )
         
+        self.style.configure("TLabel", 
+                        background=backgrond_colour, 
+                        foreground="white", 
+                        font=('Helvetica', 10, 'bold')
+                        )
+        self.style.configure("TFrame", 
+                        background=backgrond_colour,
+                        )
+
         self.left_side_frame = Frame(self,
                                      )
         

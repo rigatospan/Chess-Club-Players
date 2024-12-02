@@ -1,5 +1,5 @@
 from tkinter import END
-from tkinter.ttk import Frame, Label, Combobox, Entry, Button
+from tkinter.ttk import Frame, Label, Combobox, Entry, Button, Style
 import re
 
 class SideFrame1(Frame):
@@ -10,9 +10,18 @@ class SideFrame1(Frame):
         
         # get the parent
         self.parent = parent
+        #---------------------Define Style-------------------------------------------------
+        # backgrond_colour = "#34495E"
+        # parent.style.configure("TLabel", 
+        #                 background=backgrond_colour, 
+        #                 foreground="white", 
+        #                 font=('Helvetica', 12, 'bold')
+        #                 )
+        # parent.style.configure("TFrame", 
+        #                 background=backgrond_colour)
 
         #---------------------Add Widgets---------------------------------------------------
-
+       
         # 0 set header
         self.label_header = Label(self, text="Configure Player's List", font= ('Arial', 16))
         self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=10 )

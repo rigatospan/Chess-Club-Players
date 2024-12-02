@@ -1,5 +1,5 @@
-from tkinter import LabelFrame
-from tkinter.ttk import Treeview, Style, Scrollbar
+# from tkinter import LabelFrame
+from tkinter.ttk import Treeview, Style, Scrollbar, LabelFrame
 from tkinter.font import Font
 
 from bs4 import BeautifulSoup
@@ -11,6 +11,7 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
 
         super().__init__(parent, 
                          text= f'{parent.team_name} Players Databse,  Total Players: {parent.number_of_players},  Last Updated: {parent.database_date_modified} {parent.database_time_modified}',
+                        #  font=('Helvetica', 14, 'bold'),
                          )
         
         self.parent = parent

@@ -49,7 +49,7 @@ class FetchPlayersDatabase:
         Returns:
             dict: dictionary with information about the player, keys are strings and values are strings
             For expamle:
-                {'fide name': 'Drakopoulos Polihronis', 'std': '2114', 'rapid': '2037', 'blitz': '1977', 'GRE Rank all': 303, 'GRE Rank active': 176}
+                {'fide name': 'Spirakopoulos Ioannis', 'std': '2035', 'rapid': '1998', 'blitz': '2009', 'Fide Title': '0', 'federation': 'GRE', 'National Rank All': 507, 'National Rank Active': 264}
         """
         
         # # fetch the page data, no API is provided
@@ -79,7 +79,11 @@ class FetchPlayersDatabase:
             
             # return to parent tag to include the type of elo and the value
             elo_type_value = self.remove_newlines_tabs_spaces(tag.parent.text).split()
-           
+
+            # as of 1/12/24 they added an inactive tag, if elo is inactive the elo_type = ['inactive', 'std', '2000']
+            if 'inactive' in elo_type_value:
+                elo_type_value.remove('inactive')
+
            # take the elo_type and elo_value; 
            # as of 28/4/24: elo_type_value = ['std','2000','28'] with '28' the upgrade for the current month, discard this
            # if the player is not graded: elo_type_value = ['std','Not','Rated'], keep only the 'Not'
@@ -406,5 +410,5 @@ if __name__ == '__main__':
     so_aigaleo_players_url = 'https://chesstu.be/eso/club/01151'
     so_aigaleo = FetchPlayersDatabase(None, so_aigaleo_players_url)
     asyncio.run(so_aigaleo.main_fetch_built_database())
+    # asyncio.run(so_aigaleo.web_page_rating_scrab(players_url='https://ratings.fide.com/profile/4204123'))
 
-  

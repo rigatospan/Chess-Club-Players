@@ -1,5 +1,5 @@
-from tkinter.ttk import Combobox, Label, Button, Frame, Scrollbar, Progressbar
-from tkinter import messagebox, LabelFrame, Listbox
+from tkinter.ttk import Combobox, Label, Button, Frame, Scrollbar, Progressbar, LabelFrame
+from tkinter import messagebox, Listbox
 from tkinter import END, LEFT, RIGHT, BOTH, StringVar
 
 import time
