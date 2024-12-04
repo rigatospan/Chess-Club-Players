@@ -6,15 +6,21 @@ import time
 import requests
 import threading
 
-class ConfigureTableColumnsFrame(LabelFrame):
+class ConfigureTableColumnsFrame(Frame):
 
     def __init__(self, right_side_frame, parent):
         super().__init__(right_side_frame,
-                        text='Configure Table Columns')
+                        # text='Configure Table Columns',
+                        )
         self.parent = parent 
 
         
         #------#--------Add Widgets----------------------
+        self.label_header = Label(self, 
+                            text="Configure Table Columns", 
+                            font= ('Arial', 16),
+                            )
+        
         self.label_columns_to_show = Label(self,
                                            text='Columns to show:',
                                            )
@@ -85,68 +91,75 @@ class ConfigureTableColumnsFrame(LabelFrame):
                                         )
         self.team_col_toshow.current(0)
 
-        self.label_columns_to_show.grid(row=0,
+        self.label_header.grid(row=0,
+                               column=0,
+                               columnspan=2,
+                               padx=5,
+                               pady=5,
+                               )
+
+        self.label_columns_to_show.grid(row=1,
                                         column=0,
                                         padx=5,
                                         pady=5,
                                         )
         
-        self.columns_to_show_combobox.grid(row=0,
+        self.columns_to_show_combobox.grid(row=1,
                                         column=1,
                                         padx=5,
                                         pady=5,
                                         )
         
-        self.add_column_button.grid(row=1,
+        self.add_column_button.grid(row=2,
                                     column=0,
                                     padx=5,
                                     pady=5,
                                     )
         
-        self.remove_column_button.grid(row=1,
+        self.remove_column_button.grid(row=2,
                                     column=1,
                                     padx=5,
                                     pady=5,
                                     )
         
-        self.move_up_button.grid(row=2,
+        self.move_up_button.grid(row=3,
                                 column=0,
                                 padx=5,
                                 pady=5,
                                 )
         
-        self.move_down_button.grid(row=2,
+        self.move_down_button.grid(row=3,
                                 column=1,
                                 padx=5,
                                 pady=5,
                                 )
         
-        self.reset_col_button.grid(row=3,
+        self.reset_col_button.grid(row=4,
                                 column=0,
                                 padx=5,
                                 pady=5,
                                 )
         
-        self.clear_col_button.grid(row=3,
+        self.clear_col_button.grid(row=4,
                                 column=1,
                                 padx=5,
                                 pady=5,
                                 )
         
-        self.listbos_frame.grid(row=4,
+        self.listbos_frame.grid(row=5,
                                 column=0,
                                 columnspan=2,
                                 padx=5,
                                 pady=5,
                                 )
         
-        self.apply_columns_to_show_button.grid(row=5,
+        self.apply_columns_to_show_button.grid(row=6,
                                                column=0,
                                                padx=5,
                                                pady=5,
                                                )
         
-        self.team_col_toshow.grid(row=5,
+        self.team_col_toshow.grid(row=6,
                                    column=1,
                                    padx=5,
                                    pady=5,
@@ -249,14 +262,20 @@ class ConfigureTableColumnsFrame(LabelFrame):
 
 #---------------------------------Select Players to Team Frame--------------------------------------------------------
 
-class SelectPlayersToTeamsFrame(LabelFrame):
+class SelectPlayersToTeamsFrame(Frame):
 
     def __init__(self, right_side_frame, parent):
         super().__init__(right_side_frame, 
-                         text='Fill Teams with selected players')
+                        #  text='Fill Teams with selected players',
+                         )
         self.parent = parent
         
         #-----#---------Add Widgets---------------------------------------
+        self.label_header = Label(self, 
+                                  text="Move players to Teams", 
+                                  font= ('Arial', 16),
+                                  )
+        
         self.select_team_label = Label(self,
                                        text='Select Team:',
                                        )
@@ -273,19 +292,26 @@ class SelectPlayersToTeamsFrame(LabelFrame):
                                       state='readonly',
                                       )
         
-        self.select_team_label.grid(row=0,
+        self.label_header.grid(row=0,
+                               column=0,
+                               columnspan=2,
+                               padx=5,
+                               pady=5,
+                               )
+        
+        self.select_team_label.grid(row=1,
                                     column=0,
                                     padx=5,
                                     pady=5,
                                     )
 
-        self.created_teams_box.grid(row=0,
+        self.created_teams_box.grid(row=1,
                                     column=1,
                                     padx=5,
                                     pady=5,
                                     )
         
-        self.select_button.grid(row=1,
+        self.select_button.grid(row=2,
                                 column=0,
                                 columnspan=2,
                                 padx=5,
@@ -323,11 +349,16 @@ class SelectPlayersToTeamsFrame(LabelFrame):
         
 # ---------------------------------Update the Database Frame ---------------------------------------------------------------------------
 
-class SideFrame3(LabelFrame):
+class SideFrame3(Frame):
     
     def __init__(self, side_frame,parent):
         super().__init__(side_frame)
         self.parent = parent
+        
+        self.label_header = Label(self, 
+                                  text="Update Database", 
+                                  font= ('Arial', 16),
+                                  )
 
         self.update_database_button = Button(self,
                                         text='Create/Update Database',
@@ -350,28 +381,34 @@ class SideFrame3(LabelFrame):
                                        mode='determinate',
                                        )
         
-        self.label_clubs_url.grid(row=0,
+        self.label_header.grid(row=0,
+                               column=0,
+                               padx=5,
+                               pady=5,
+                               )
+        
+        self.label_clubs_url.grid(row=1,
                              column=0,
-                             padx=10,
-                             pady=10,
+                             padx=5,
+                             pady=5,
                              )
         
-        self.entry_clubs_url.grid(row=1,
+        self.entry_clubs_url.grid(row=2,
                              column=0,
-                             padx=10,
-                             pady=10,
+                             padx=5,
+                             pady=5,
                              )
         
-        self.update_database_button.grid(row=2, 
+        self.update_database_button.grid(row=3, 
                                     column=0 , 
-                                    padx= 10, 
-                                    pady= 10,
+                                    padx= 5, 
+                                    pady= 5,
                                     )
         
-        self.progress_bar.grid(row=3,
+        self.progress_bar.grid(row=4,
                                column=0,
-                               padx=10,
-                               pady=10,
+                               padx=5,
+                               pady=5,
                                )
         
     def ask_question_update_database(self):

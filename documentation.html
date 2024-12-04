@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+  <meta charset="UTF-8">
+  <!-- <meta name="viewport" content="width=device-width, initial-scale=1.0"> -->
+  <title>Chess Teams Manager Documentation</title>
+</html>
+
+<body>
+
+  <p>
+    This programm is created by the playful ponny. All copyrights reserved.
+  </p>
+  <h1>Chess Teams Manager</h1>
+  <p> Local software to create/manage/update chess teams and players info of a local club automatically.  
+    It is comprised by 7 total sections: 
+    <ol>
+      <li>
+        <p><a href="#section1">Configure Players List</a> (top-left): define the critiria for searching the players database</p>
+      </li>
+      <li>
+        <p><a href="#section2">Create New Team</a> (bottom-left): crete teams and set team's inforation</p>
+      </li>
+      <li>
+        <p><a href="#section3">Players Database</a> (top-middle):  the club's players database to be searched-restricted </p>
+      </li>
+      <li>
+        <p><a href="#section4">Created Teams Frames</a> (bottom-middle): the teams compositions to be filled with players </p>
+      </li>
+      <li>
+        <p><a href="#section5">Configure Database Columns</a> (top-right): configure the players database columns with additional inforation</p>
+      </li>
+      <li>
+        <p><a href="#section6">Move Players to Teams</a> (middle-right): select team to place the selected players</p>
+      <li>
+        <p><a href="#section7">Update Database</a> (bottom-right): create/update the players database</p>
+      </li>
+    </ol>
+
+  </p>
+
+  <h3 id="section1"> 1. Configure Players List</h3>
+    <p>
+      On this panel you can define the searching critiria in the players database.
+      There are 7 total critiria to impose:
+    </p>
+    <ol>
+      <li>
+        <p>elo type and range: choose one of the elo type and its minimum and maximum rate.
+          When you click apply only the players in the specified elo-type range will be displayed.</p>
+      </li>
+      <li>
+        <p>age: choose the age range of the players to be displayed.</p>
+      </li>
+      <li>
+        <p>gender: choose the gender of the players, 'All', 'M' for males, 'F' for females.</p>
+      </li>
+      <li>
+        <p>active players: when selected yes only the fide active players will be displayed, when no 
+          only the inactive.</p>
+      </li>
+      <li>
+        <p>Eso fee paid: when selected yes only the players with paid eso fee will be displayed.</p>
+      </li>
+      <li>
+        <p>Search by name: search a player/players by name, either with latin or greek characters.
+          When some text is insert in the box, only the players with names that start from that text will be
+          displayd when apply.</p>
+      </li>
+    </ol>
+    <p>There are two buttons on this section as well:</p>
+    <ol>
+      <li>
+        <p>Apply: when clicked will display the players based on the current insertions on the above fields.
+          Of course all fields are combined to restrict the database, 
+          i.e. one can search all female, active players, with fide elo in range 1500-2000, aged between 10-20.</p>
+      </li>
+      <li>
+        <p>Clear: when clicked it clears all entries to the fields and automatically reset the database to 
+        its initial display of all players.</p>
+      </li>
+    </ol>
+    
+    <h3 id="section2">2. Create New Team</h3>
+    <p>
+      On this panel you can create multiple teams to be fill with players from the database.
+      There are 8 field to insert information about the match to take place:
+    </p>
+    <ol>
+      <li>
+        <p>Team's Name: provide the name of the club's team, i.e. So Aigaleo Under 10 A</p>
+      </li>
+      <li>
+        <p>Opponent Team's Name: provide the name of the opponent club's team, i.e. So Peristeriou Under 10 B</p>
+      </li>
+      <li>
+        <p>Tournament: provide the name of the competition that the team takes part, i.e. Eso tournament Under 10 2023</p>
+      </li>
+      <li>
+        <p>Match Date: probide the date of the match to take place: i.e. 1/1/2030</p>
+      </li>
+      <li>
+        <p>Address: provide the address of the place when the match is hold</p>
+      </li>
+      <li>
+        <p>Round: provide the number of the round, i.e. 7th round</p>
+      </li>
+      <li>
+        <p>Home Court: if selected yes then the team has home-court</p>
+      </li>
+      <li>
+        <p>Number of Boards: provide the number of players that is team is comprised of, i.e. 8 total players</p>
+      </li>
+    </ol>
+    <p>There are two butons on this panel:</p>
+    <ol>
+      <li>
+        <p>create: when clicked it will create a team frame with the current provided information on the above fields.</p>
+      </li>
+      <li>
+        <p>clear: when clicked it will empty the entries to all of the above fields.</p>
+      </li>
+    </ol>
+    <p>Notes:</p>
+    <ul>
+      <li>
+        <p>Teams are identified by there NAMES. You CANNOT create two teams with the same name.</p>
+      </li>
+      <li>
+        <p>If a team's frame is already created but the provided informations need to be adjusted simple provide the team's
+          name in the appropriate field and all adjusted information and the click apply. 
+          No new frame will be created but the informations on the existing one will be updated.</p>
+      </li>
+    </ul>
+  
+  <h3 id="section3">3. Players Database</h3>
+    <p>
+      <p>
+      On this panel the information about the club's players are displayed. On the top there are a few general information about the Club's Name, total number of players and last time the 
+      players database was updated. The players informations are organized in a table-dataframe manner as rows and columns. 
+      The table is interactive in the following operations:
+      </p>
+
+      <ul>
+        <li>
+          <p>when click on the name of a column the rows will be sorted in ascended order of the column values. 
+          When clicked on the same name order is descended.</p>
+        </li>
+        <li>
+          <p>when double click on a players fide id value, the players fide profile will be opened in the browser</p>
+        </li>
+        <li>
+          you can select multiple players by pressing crt + left click and place those on a team via the middle-right panel.
+        </li>
+        
+      </ul>
+    
+    </p>
+
+  
+  <h3 id="section4">4. Created Teams Frame</h3>
+    <p>On this panel the frames of the created teams are displayed with the provided information and with the spedified
+      number of players to be filled. There are 3 sections on this panel:</p>
+    <ul>
+      <li>
+        <p>on the top the team's information is displayed, with an additional field for any optional additional information to be
+        entered, i.e. some useful telephone numbers for upcoming match.</p>
+      </li>
+      <li>
+        <p>in the middle there is a similar database table with the players of this team. Multiple players can be selected.</p>
+        </li>
+      <li>
+        <p>in the bottom there are 5 buttons:</p>
+        <ol>
+          <li>
+            <p>Remove team: remove the created frame of the team</p>
+          </li>
+          <li>
+            <p>Remove Selected Players: removes the currently selected players out of the team's composition.</p>
+          </li>
+          <li>
+            <p>Move Player Up/Down: when pressed move the currently selected player on place up/down in the team composition order.</p>
+          </li>
+          <li>
+            <p>Export to pdf: when pressed creates a pdf with the current state of the team in the same folder with name the name of the team.</p>
+          </li>
+        </ol>
+      </li>
+    </ul>
+
+    <p>Notes:</p>
+      <ul>
+        <li>
+          <p>You can switch between the teams frames</p>
+        </li>
+        <li>
+          <p>You can fill a team with players using the middle-right panel appropriately</p>
+        </li>
+        <li>
+          <p>You cannot place the same player twice on the same team</p>
+        </li>
+        <li>
+          <p>You could place the same player twice on different teams, however there is a warning for that to avoid confusions</p>
+        </li>
+        <li>
+          <p>Any restrictions on the teams composition is to be handled manualy by the user. 
+            For example the order of the players, elo and age restrictions per board number, etc. </p>
+        </li>
+        <li>
+          <p>When export to a pdf, the columns currently present on the table will be present. If some additional columns are
+            needed, impose those on the team's table by using the top-right panel appropriately.</p>
+        </li>
+      </ul>
+
+  <h3 id="section5">5. Configure Table Columns</h3>
+    <p>
+      Use this panel to add/remove and configure the order of the players columns in both the players database panel and on teams frame separetely.
+      The columns and order to be applyed to either the players Database or to a team frame is presented on the list box and configured appropriately by the
+      operation of this panel.
+    </p>
+    <p>
+      There are 8 widgets on this panel:
+    </p>
+    <ol>
+      <li>
+        <p>Columns to show: when clicked the list of all avaliable columns is displayed. Select the column you want to add or remove.</p>
+      </li>
+      <li>
+        <p>Add/Remove Buttons: when pressed adds/remove the selected column to the list of columns displayed below. The added column is always placed last</p>
+      </li>
+      <li>
+        <p>Move up/down Buttons: when a column name is selected from the list of columns it moves that column up/down the list to the desired order.</p>
+      </li>
+      <li>
+        <p>Reset Button: reset the columns list to the default list</p>
+      </li>
+      <li>
+        <p>Clear Button: empty the columns list</p>
+      </li>
+      <li>
+        <p>Columns list: the list of columns and order to be applyed to the database or a team's frame</p>
+      </li>
+      <li>
+        <p>Teams list: the list of teams created and the overall database. Select the one you want to configure its columns. When a team is created is added to this list.</p>
+      </li>
+      <li>
+        <p>Apply Columns Button: apply the current list and order of columns to the selected team or to the database.</p>
+      </li>
+    </ol>
+
+
+  <h3 id="section6">6. Fill Teams with Selected Players</h6>
+
+    <p>Use this panel to place players from the database to a team's composition with the following two widges:</p>
+      <ol>
+        <li>
+          <p>Select Team list: select a team from the created teams to place players to.</p>
+        </li>
+        <li>
+          <p>Move Players to Team Button: When pressed the currently selected players from the database will be place to the selected team.</p>
+        </li>
+      </ol>
+    
+    <p>Notes:</p>
+    <ul>
+      <li>
+        <p>Select one or multiple players from the database using ctrl + left click, then select the desired team to place those
+          players and hit the Move Players to Team button.</p>
+      </li>
+      <li>
+        <p>A player cannot be twice on the same team, but it CAN be on two different teams</p>
+      </li>
+      <li>
+        <p>the total number of players cannot excide the number of players of the team</p>
+      </li>
+      <li>
+        <p>the players order on the team is to be handled by the user manually and appropriately each time depending on the 
+          restrictions of the tournament, i.e. elo limits, age restrictions, etc.</p>
+      </li>
+    </ul>
+  
+
+  <h3 id="section7">7. Update Database</h3>
+
+    <p>On this panel you can create a club's players database combining both national and internation information about the players.
+       using the following:
+    </p>
+    <ul>
+      <li>
+        <p>Enter Club's URL: enter the ESO club's URL, i.e https://chesstu.be/eso/club/01151</p>
+      </li>
+      <li>
+        <p>Create/Update Database: when pressed will create/update the database of the provided url's club</p>
+      </li>
+      <li>
+        <p>Time-elapsed bar</p>
+      </li>
+    </ul>
+
+    <p>Notes: </p>
+    <ul>
+      <li>
+        <p>Database: the programm will create a database with the players information from BOTH the eso and fide sites as a .pkl file 
+        on the same folder location as the program's executable file and a .json file with metadata of the Club.</p>
+      </li>
+      <li>
+        <p>If the Club's database has already been created its URL is listed on the box and pressing the Update button will update the
+        current database to the latest player's information.</p>
+      </li>
+      <li>
+        <p>At the begining of each month a reminder window is displayed to the user to update the database to fetch the latest elo.</p>
+      </li>
+      <li>
+        <p>If multiply clubs database exist on the folder the program will automatially display the latest updated one</p>
+      </li>
+    </ul>
+
+</body>

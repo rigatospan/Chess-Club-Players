@@ -1,4 +1,4 @@
-from tkinter.ttk import Treeview, Button, Entry, Label, Frame, Style, Scrollbar
+from tkinter.ttk import Treeview, Button, Entry, Label, Frame, Style, Scrollbar, Style
 from tkinter.font import Font
 from tkinter import messagebox
 
@@ -17,7 +17,7 @@ class TeamsCreation(Frame):
     def __init__(self, parent, notebook, new_team_info_dic):
         super().__init__(notebook)
         self.parent = parent
-
+               
         # 
         self.all_headers = self.parent.original_database_all_headers
         self.columns_to_show = self.parent.original_database_headers_to_show.copy()

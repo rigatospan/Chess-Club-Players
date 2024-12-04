@@ -1,6 +1,8 @@
 from tkinter import messagebox, Tk, PhotoImage
 from tkinter.ttk import Notebook, Frame, Style
+from tkinter import Menu, Toplevel
 
+import webbrowser
 import pandas as pd
 import os
 from datetime import datetime
@@ -26,7 +28,10 @@ class root(Tk):
         self.title('Chess Team Manager')
 
         # set the window to full screen
-        self.state('zoomed')
+        # self.state('zoomed')
+
+        # make the window not resisable
+        self.resizable(False, False)
 
         # set size and min-size
         self.minsize(400,200)
@@ -132,22 +137,35 @@ class root(Tk):
         
         # create a dictionare that will hold the frames of the created teams as pairs 'team_name' : Frame
         self.created_teams_dic = {}
+        
+        # make the root window udaptive
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=2)
+        self.columnconfigure(2, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        
+        # define background color of the main window
+        self.configure(bg='lightblue')
 
         #-----------------------------Left Side Frame-------------------------------------------------------
-        # define the style of the left frames
-        self.style = Style()
+        # define the style of the left and right frames
+        self.style_left_right = Style()
         backgrond_colour = "#34495E"
-        self.style.configure('TLabelFrame',
-                             background='red',
-                             font = ('Helvetica', 14, 'bold'),
-                             )
+        # backgrond_colour = "lightgreen"
         
-        self.style.configure("TLabel", 
+        # self.style.configure('TLabelFrame',
+        #                      background='red',
+        #                      font = ('Helvetica', 14, 'bold'),
+        #                      )
+        
+        self.style_left_right.configure("TLabel", 
                         background=backgrond_colour, 
                         foreground="white", 
                         font=('Helvetica', 10, 'bold')
                         )
-        self.style.configure("TFrame", 
+        
+        self.style_left_right.configure("TFrame", 
                         background=backgrond_colour,
                         )
 
@@ -171,16 +189,27 @@ class root(Tk):
                                pady= 10, 
                             #    sticky='wn',
                                )
-              
+        
+        # add the whole left frame, make stick to the left, top, bottom
         self.left_side_frame.grid(row=0,
                              column=0,
                              rowspan=2,
-                             sticky='wn'
+                             sticky='wns',
                              )
+        
+        # make the left frame adaptive
+        self.left_side_frame.columnconfigure(0, weight=1)
+        self.left_side_frame.rowconfigure([0, 1], weight=1)
         
         #-----------------------------------Middle Up Database Frame-----------------------
         # Players Database Frame; set the initial width of the tree
-        self.tree_width = 765
+        # self.tree_width = 765
+        
+        # get the dimensions of the screen in pixels
+        screen_height, screen_width = self.winfo_screenheight(), self.winfo_screenwidth()
+        # print(f'height is {screen_height}, width is {screen_width}')
+        self.tree_width = int(screen_width*0.55)
+
 
         self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
         self.table_to_show_frame.grid(row=0, 
@@ -190,13 +219,18 @@ class root(Tk):
                                       sticky='n',
                                       )
         
+        # try to make the tree responsive
+        # self.table_to_show_frame.rowconfigure()
+        
         # update the root to fix the tree width 
         self.update()
         # add the displayed columns to the tree without changing its width
         self.table_to_show_frame.modify_display_columns()
+        
 
-        # Middle down teams notebook- created teams frames
-        self.teams_selection_notebook = Notebook(self, )    
+        #-------------------------Middle down teams notebook- created teams frames---------
+        self.teams_selection_notebook = Notebook(self, ) 
+                   
         self.teams_selection_notebook.grid(row=1,
                                          column=1,
                                          padx=10,
@@ -207,39 +241,70 @@ class root(Tk):
         #---------------Right Side Frame----------------------------------------
         self.right_side_frame = Frame(self,)
 
+        # right top frame
         self.configure_table_columns_frame = ConfigureTableColumnsFrame(self.right_side_frame, self)
         self.configure_table_columns_frame.grid(row=0,
                                                 column=0,
                                                 padx=10,
                                                 pady=20,
-                                                # sticky='N',
+                                                # sticky='n',
                                                 )
         
+        # right middle frame
         self.select_player_to_teams_frame = SelectPlayersToTeamsFrame(self.right_side_frame, self)
         self.select_player_to_teams_frame.grid(row=1, 
                                                column=0,
                                                padx = 10,
-                                               pady=20
-                                            #    sticky='N',
+                                               pady=20,
+                                            #    sticky='n',
                                                )
         
-         # side frame 3: Update the datbase
+        # right  bottom frame: Update the datbase
         self.side_frame_3 = SideFrame3(self.right_side_frame, self)
-        self.side_frame_3.config(text= 'Update Database')
         
         self.side_frame_3.grid(row=2, 
                                column=0 , 
                                padx= 10, 
                                pady= 20, 
-                            #    sticky='wn',
+                            #    sticky='n',
                                )
         
-        # add the whole right frame
+        # add the whole right frame, make it stick to the right, top, bottom
         self.right_side_frame.grid(row=0,
                                    column=2,
                                    rowspan=2,
-                                   sticky = 'en'
-                                   )                           
+                                   sticky = 'ens'
+                                   )       
+        
+        # make the right frame adjustable
+        self.right_side_frame.columnconfigure(0, weight=1)
+        self.right_side_frame.rowconfigure([0, 1, 2], weight=1)
+        
+        #-------------------- Add Menu --------------------------------------------------
+        
+        # create a menu bar and help
+        self.menu_bar = Menu(self)
+        self.help_menu = Menu(self.menu_bar, tearoff=0)
+        self.help_menu.add_command(label="Documentation", command=lambda: self.open_html_in_browser('documentation.html'))
+        self.menu_bar.add_cascade(label="Menu", menu=self.help_menu)
+        self.config(menu=self.menu_bar)
+    
+    def open_html_in_browser(self, file_path):
+        '''Takes a string with the name of an html documantation file and opens it in the default browser.
+        '''
+        # Ensure the file path is absolute
+        if not os.path.isabs(file_path):
+            file_path = os.path.abspath(file_path)
+
+        try:
+            # Try opening the HTML file in the default web browser
+            success = webbrowser.open(f'file:///{file_path}')
+            if not success:
+                raise Exception("Failed to open in the browser")
+        except Exception as e:
+            # If opening in the browser fails, fallback to displaying the HTML in a new window
+            messagebox.showerror("Error", f"Failed to open the HTML file in the browser. Maybe open as an internal window.\n{str(e)}")
+            # self.open_html_in_window(file_path)                 
         
     def create_new_team(self,):
         '''Creates a new team's frame in the notebook with the info of the entries in the left_side_frame2.
@@ -258,7 +323,7 @@ class root(Tk):
         # check if the same name's team is already created
         if new_team_info_dic["Team's Name:"] not in self.created_teams_dic.keys(): 
             # creat the new team frame inside the notepad
-            new_team_frame = TeamsCreation(self, self.teams_selection_notebook,new_team_info_dic)
+            new_team_frame = TeamsCreation(self, self.teams_selection_notebook, new_team_info_dic)
 
             self.created_teams_dic[new_team_info_dic["Team's Name:"]] = new_team_frame
 
