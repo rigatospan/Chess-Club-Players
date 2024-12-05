@@ -28,10 +28,10 @@ class root(Tk):
         self.title('Chess Team Manager')
 
         # set the window to full screen
-        # self.state('zoomed')
+        self.state('zoomed')
 
         # make the window not resisable
-        self.resizable(False, False)
+        # self.resizable(False, False)
 
         # set size and min-size
         self.minsize(400,200)
@@ -145,14 +145,14 @@ class root(Tk):
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         
+        #---------------------Style----------------------------------------------------------------
+        
         # define background color of the main window
-        self.configure(bg='lightblue')
+        self.configure(bg='lightgray')
 
-        #-----------------------------Left Side Frame-------------------------------------------------------
         # define the style of the left and right frames
         self.style_left_right = Style()
         backgrond_colour = "#34495E"
-        # backgrond_colour = "lightgreen"
         
         # self.style.configure('TLabelFrame',
         #                      background='red',
@@ -168,7 +168,8 @@ class root(Tk):
         self.style_left_right.configure("TFrame", 
                         background=backgrond_colour,
                         )
-
+        
+        #-----------------------------Left Side Frame-------------------------------------------------------
         self.left_side_frame = Frame(self,
                                      )
         
@@ -201,43 +202,6 @@ class root(Tk):
         self.left_side_frame.columnconfigure(0, weight=1)
         self.left_side_frame.rowconfigure([0, 1], weight=1)
         
-        #-----------------------------------Middle Up Database Frame-----------------------
-        # Players Database Frame; set the initial width of the tree
-        # self.tree_width = 765
-        
-        # get the dimensions of the screen in pixels
-        screen_height, screen_width = self.winfo_screenheight(), self.winfo_screenwidth()
-        # print(f'height is {screen_height}, width is {screen_width}')
-        self.tree_width = int(screen_width*0.55)
-
-
-        self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
-        self.table_to_show_frame.grid(row=0, 
-                                      column=1, 
-                                      padx= 10, 
-                                      pady= 10, 
-                                      sticky='n',
-                                      )
-        
-        # try to make the tree responsive
-        # self.table_to_show_frame.rowconfigure()
-        
-        # update the root to fix the tree width 
-        self.update()
-        # add the displayed columns to the tree without changing its width
-        self.table_to_show_frame.modify_display_columns()
-        
-
-        #-------------------------Middle down teams notebook- created teams frames---------
-        self.teams_selection_notebook = Notebook(self, ) 
-                   
-        self.teams_selection_notebook.grid(row=1,
-                                         column=1,
-                                         padx=10,
-                                         pady=5,
-                                         sticky='n',
-                                         )
-        
         #---------------Right Side Frame----------------------------------------
         self.right_side_frame = Frame(self,)
 
@@ -246,7 +210,7 @@ class root(Tk):
         self.configure_table_columns_frame.grid(row=0,
                                                 column=0,
                                                 padx=10,
-                                                pady=20,
+                                                pady=10,
                                                 # sticky='n',
                                                 )
         
@@ -255,7 +219,7 @@ class root(Tk):
         self.select_player_to_teams_frame.grid(row=1, 
                                                column=0,
                                                padx = 10,
-                                               pady=20,
+                                               pady=10,
                                             #    sticky='n',
                                                )
         
@@ -265,7 +229,7 @@ class root(Tk):
         self.side_frame_3.grid(row=2, 
                                column=0 , 
                                padx= 10, 
-                               pady= 20, 
+                               pady= 10, 
                             #    sticky='n',
                                )
         
@@ -280,6 +244,57 @@ class root(Tk):
         self.right_side_frame.columnconfigure(0, weight=1)
         self.right_side_frame.rowconfigure([0, 1, 2], weight=1)
         
+        #-----------------------------------Middle Up Database Frame-----------------------
+        
+        # Determine Width of the Treeview Database as follows: 
+        # get actual screen width of the left and right frames to their contents
+        # allocate the remaining avaliable width to the Treeview Database
+        
+        # update tasks to get the actual screen width of the left and right frame. 
+        self.update_idletasks()
+
+        # Get the width of the left and right frames and the total screen width
+        left_frame_width = self.left_side_frame.winfo_reqwidth()
+        right_frame_width = self.right_side_frame.winfo_reqwidth()
+        screen_height, screen_width = self.winfo_screenheight(), self.winfo_screenwidth()
+        
+        print(f'left frame {left_frame_width}, right frame {right_frame_width}')
+        print(f'height of screen {screen_height}, width of screen {screen_width}')
+        
+        # allocate the remaining avaliable width to the Treevies Database, minus some number fro padding etc.
+        self.tree_width = screen_width - left_frame_width - right_frame_width - 50
+
+        print(f'width of the Treeview Database {self.tree_width}')
+        
+        # create the middle-top LabelFrame
+        self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
+        self.table_to_show_frame.grid(row=0, 
+                                      column=1, 
+                                      padx= 10, 
+                                      pady= 10, 
+                                      sticky='n',
+                                      )
+        
+        # try to make the tree responsive
+        # self.table_to_show_frame.rowconfigure()
+        
+        # update the root to fix the tree width 
+        self.update()
+        
+        # add the displayed columns to the tree without changing its width
+        self.table_to_show_frame.modify_display_columns()
+        
+
+        #-------------------------Middle down teams notebook- created teams frames---------
+        self.teams_selection_notebook = Notebook(self, ) 
+                   
+        self.teams_selection_notebook.grid(row=1,
+                                         column=1,
+                                         padx=10,
+                                         pady=5,
+                                         sticky='n',
+                                         )
+        
         #-------------------- Add Menu --------------------------------------------------
         
         # create a menu bar and help
@@ -288,6 +303,9 @@ class root(Tk):
         self.help_menu.add_command(label="Documentation", command=lambda: self.open_html_in_browser('documentation.html'))
         self.menu_bar.add_cascade(label="Menu", menu=self.help_menu)
         self.config(menu=self.menu_bar)
+    
+        #-----------------Auto destroy---------------------------------------------------
+        self.after(2000, self.auto_destroy)
     
     def open_html_in_browser(self, file_path):
         '''Takes a string with the name of an html documantation file and opens it in the default browser.
@@ -367,6 +385,18 @@ class root(Tk):
 
         self.initialize_database()
         self.initialize_root()
+        
+    def auto_destroy(self,):
+        '''function to autodestroy the window after some time or conditions.
+        Used as a safety net when wanting to distribut the software for limiting amond of time.
+        '''
+
+        # auto-destroy is the day is not a specific one; could do other restrictions
+        if datetime.today().day != 5:
+            messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
+            time.sleep(1)
+            self.destroy()
+        
 
 if __name__ == '__main__':
 
