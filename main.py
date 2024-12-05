@@ -8,6 +8,8 @@ import os
 from datetime import datetime
 import time
 import asyncio
+import sys
+from pathlib import Path
 
 from Players_Database_Fetch_Explore.fetch_and_built_database_async import *
 from Graphical_Interphase.left_side_frames import SideFrame1 , SideFrame2
@@ -37,7 +39,8 @@ class root(Tk):
         self.minsize(400,200)
 
         # set the logo
-        photo = PhotoImage(file='Pictures/logo.png')
+        logo_path = self.resource_path('Additional_files/logo.png')
+        photo = PhotoImage(file=logo_path)
         self.iconphoto(True, photo)
         
         # initialize the current database
@@ -51,6 +54,17 @@ class root(Tk):
         if today.month != self.database_date_modified.month:
             time.sleep(1)
             messagebox.showinfo('Update Database', 'Please update database to get the latest elo!')
+
+    def resource_path(self, relative_path):
+        """ Get the absolute path to the resource for PyInstaller executables and scripts. 
+        """
+        
+        if hasattr(sys, '_MEIPASS'):
+            # Running from the PyInstaller bundle
+            return Path(sys._MEIPASS) / relative_path
+        else:
+            # Running directly from the script
+            return Path(__file__).parent / relative_path    
 
     def initialize_database(self,):
         '''Search in the cwd for pkl files and upload the most recent one as the original database.
@@ -258,13 +272,13 @@ class root(Tk):
         right_frame_width = self.right_side_frame.winfo_reqwidth()
         screen_height, screen_width = self.winfo_screenheight(), self.winfo_screenwidth()
         
-        print(f'left frame {left_frame_width}, right frame {right_frame_width}')
-        print(f'height of screen {screen_height}, width of screen {screen_width}')
+        # print(f'left frame {left_frame_width}, right frame {right_frame_width}')
+        # print(f'height of screen {screen_height}, width of screen {screen_width}')
         
         # allocate the remaining avaliable width to the Treevies Database, minus some number fro padding etc.
         self.tree_width = screen_width - left_frame_width - right_frame_width - 50
 
-        print(f'width of the Treeview Database {self.tree_width}')
+        # print(f'width of the Treeview Database {self.tree_width}')
         
         # create the middle-top LabelFrame
         self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
@@ -298,9 +312,10 @@ class root(Tk):
         #-------------------- Add Menu --------------------------------------------------
         
         # create a menu bar and help
+        html_file_path = self.resource_path('Additional_files/documentation.html')
         self.menu_bar = Menu(self)
         self.help_menu = Menu(self.menu_bar, tearoff=0)
-        self.help_menu.add_command(label="Documentation", command=lambda: self.open_html_in_browser('documentation.html'))
+        self.help_menu.add_command(label="Documentation", command=lambda: self.open_html_in_browser(html_file_path))
         self.menu_bar.add_cascade(label="Menu", menu=self.help_menu)
         self.config(menu=self.menu_bar)
     
@@ -392,10 +407,10 @@ class root(Tk):
         '''
 
         # auto-destroy is the day is not a specific one; could do other restrictions
-        if datetime.today().day != 5:
-            messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
-            time.sleep(1)
-            self.destroy()
+        # if datetime.today().day != 5:
+        #     messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
+        #     time.sleep(1)
+        #     self.destroy()
         
 
 if __name__ == '__main__':
