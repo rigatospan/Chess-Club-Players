@@ -366,7 +366,7 @@ class SideFrame3(Frame):
                                         )
         
         self.label_clubs_url = Label(self,
-                                text="Enter Club's URL:")
+                                text="Enter Club's Eso Url:")
         
         self.clubs_url = StringVar()
         self.entry_clubs_url = Combobox(self,
@@ -413,33 +413,56 @@ class SideFrame3(Frame):
         
     def ask_question_update_database(self):
         '''Get the user's URL and if is valid changes the parent.clubs_eso_players_url.
-        Then calls the update_database() method of the root.
+        Check connection to the club's url and then calls the update_database() method of the root.
         '''
+        # get the url entered by the user
         users_club_url = self.clubs_url.get()
 
+        # if anything is entered check the connection
         if len(users_club_url)>0:
             try:
                 responce = requests.get(users_club_url)
-                print('connection established')
+                # print('connection established')
                 # maybe check if the eso info where succesfully fetched 
                 # new_club = FetchPlayersDatabase(users_club_url)
                 # new_club.fetch_eso_players
                 self.parent.clubs_eso_players_url = users_club_url
-                print("Club's url is valid and ready for fetching")
+                # print("Club's url is valid and ready for fetching")
             except:
                 print('New Url not correct, will procceed with the default URL')
 
-        answer_update_datavase = messagebox.askquestion(title='Update Database', 
+        answer_update_database = messagebox.askquestion(title='Update Database', 
                                                         message=f'All current teams will be erased, page will automatically reload after finishing. Update Database?',
                                                         detail = '(requires internet connection, may take a few seconds)',
                                                         )
 
-        if answer_update_datavase == 'yes':
-            # start moving the progressive bar on a seperate thread until database is updated
-            threading.Thread(target=self.waiting_logo).start()
+        if answer_update_database == 'yes':
 
-            # # update the database on a seperate thread
-            threading.Thread(target=self.parent.update_database).start()
+            try:
+                response = requests.get(self.parent.clubs_eso_players_url)  # Timeout set to 5 seconds
+                if response.status_code == 200:
+                    print(f"Successfully connected to {self.parent.clubs_eso_players_url}")
+
+                    # start moving the progressive bar on a seperate thread until database is updated
+                    threading.Thread(target=self.waiting_logo).start()
+
+                    # update the database on a seperate thread
+                    threading.Thread(target=self.parent.update_database).start()
+
+                else:
+                    messagebox.showerror("Error", f"Failed to connect to {self.parent.clubs_eso_players_url},  returned status code: {response.status_code}.")
+
+            except requests.ConnectionError:
+                print("No internet connection or the site is unreachable.")
+                messagebox.showerror("Error", "No internet connection.")
+
+            except requests.Timeout:
+                # print("The request to the site timed out.")
+                messagebox.showerror("Error", "The request to the site timed out.")
+                
+            except requests.RequestException as e:
+                # print(f"An error occurred: {e}")
+                messagebox.showerror("Error", f"An error occurred: {e}")
 
         return
     

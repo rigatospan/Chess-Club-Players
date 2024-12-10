@@ -1,6 +1,6 @@
 from tkinter import messagebox, Tk, PhotoImage
 from tkinter.ttk import Notebook, Frame, Style
-from tkinter import Menu, Toplevel
+from tkinter import Menu, Toplevel, filedialog
 
 import webbrowser
 import pandas as pd
@@ -23,7 +23,8 @@ class root(Tk):
     def __init__(self):
         
         super().__init__()
-
+        
+        # set the url of the club to empty initially
         self.clubs_eso_players_url = ''
 
         # set the title of the root window
@@ -66,12 +67,13 @@ class root(Tk):
             # Running directly from the script
             return Path(__file__).parent / relative_path    
 
-    def initialize_database(self,):
+    def initialize_database(self, file = None):
         '''Search in the cwd for pkl files and upload the most recent one as the original database.
+        If a file-database-name is provided via the import window keeps only that database.
         It also retrieves the corresponding .json file with the team's additional info.
         If no database exists at the moment it sets the original database to an empty DataFrame.
         Sets the attributes: self.original_database, self.number_of_players, self.database_date_modified,
-        self.clubs_eso_players_url from the info in the json file
+        self.clubs_eso_players_url from the info in the json file.
 
         Example 1: so_aigaleo.pkl , so_aigaleo.json is the most recent
         Action: self.original_database = pd.read_pickle('so_aigaleo.pkl')
@@ -87,10 +89,14 @@ class root(Tk):
                 self.database_time_modified = '20:58'
                 self.number_of_players = 0
         '''
-        
-        # find all databases in the current directory and choose the latest modified
-        databases = [file for file in os.listdir() if file.endswith('.pkl') ]
-        
+
+        if file:
+            databases =[file]
+        else:
+            # find all databases in the current directory and choose the latest modified
+            databases = [file for file in os.listdir() if file.endswith('.pkl') ]
+        # print(databases)
+
         # if there is no database set the attributes to specific Null values
         if len(databases) == 0:
             self.original_database = pd.DataFrame({})
@@ -129,6 +135,9 @@ class root(Tk):
                 
                 if 'Number of Players' in teams_info_dic:
                     self.number_of_players = teams_info_dic['Number of Players']
+        else:
+            # if the .json file is not present
+            self.number_of_players = 'Null'
 
     def initialize_root(self):
         '''Create the main frames of the application.
@@ -193,7 +202,7 @@ class root(Tk):
         self.left_side_frame_1.grid(row=0, 
                                column=0 , 
                                padx= 10, 
-                               pady= 10, 
+                               pady= 5, 
                                )
 
         # side frame 2: Create new teams
@@ -201,7 +210,7 @@ class root(Tk):
         self.left_side_frame_2.grid(row=1, 
                                column=0 , 
                                padx= 10, 
-                               pady= 10, 
+                               pady= 5, 
                             #    sticky='wn',
                                )
         
@@ -284,8 +293,8 @@ class root(Tk):
         self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
         self.table_to_show_frame.grid(row=0, 
                                       column=1, 
-                                      padx= 10, 
-                                      pady= 10, 
+                                      padx= 5, 
+                                      pady= 0, 
                                       sticky='n',
                                       )
         
@@ -304,7 +313,7 @@ class root(Tk):
                    
         self.teams_selection_notebook.grid(row=1,
                                          column=1,
-                                         padx=10,
+                                         padx=5,
                                          pady=5,
                                          sticky='n',
                                          )
@@ -318,10 +327,54 @@ class root(Tk):
         self.help_menu.add_command(label="Documentation", command=lambda: self.open_html_in_browser(html_file_path))
         self.menu_bar.add_cascade(label="Menu", menu=self.help_menu)
         self.config(menu=self.menu_bar)
+
+        # create an import database 
+        self.help_menu.add_command(label='Import Database', command=lambda: self.import_database())
     
         #-----------------Auto destroy---------------------------------------------------
+        # destroy the window for security reasons; for example after a trial period of use
+
         self.after(2000, self.auto_destroy)
     
+    def import_database(self, ):
+
+        """Open a file dialog to import a database, then reload the main window with the new database.
+        """
+
+        # database path
+        database_path = filedialog.askopenfilename(
+            initialdir=".", 
+            title="Select a Document",
+            filetypes=(("pkl files", "*.pkl"), ("All files", "*.*"))
+        )
+        
+        # keep only the name of the database
+        database_name = database_path
+        if '/' in database_path:
+            database_name = database_path.split('/')[-1]
+
+        # check that is a .pkl file
+        if database_name.endswith('.pkl'):
+            try:
+
+                # print(database_path, database_name)
+                # infrom the user that all teams created will be lost when importing the new database
+                answer_import_datavase = messagebox.askquestion(title='Import Database', 
+                                                message=f'All current teams will be erased, page will automatically reload. Import Database?',
+                                                )
+
+                if answer_import_datavase == 'yes':
+                    # update database and main window
+                    self.initialize_database(file=database_name)
+                    self.initialize_root()
+                    
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not open file: {e}")
+
+        else:
+            messagebox.showerror("Error", f"Please selcet a .pkl file or create a database using create/update database button.")
+
+
     def open_html_in_browser(self, file_path):
         '''Takes a string with the name of an html documantation file and opens it in the default browser.
         '''

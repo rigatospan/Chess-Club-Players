@@ -390,17 +390,17 @@ class FetchPlayersDatabase:
         t1= time.time()
         await self.fetch_eso_players()
         t2 = time.time()
-        print(f'time for eso players scrapping {round(t2-t1, 3)}')
+        # print(f'time for eso players scrapping {round(t2-t1, 3)}')
 
         t3 = time.time()
         await self.fetch_fide_all_club_players()
         t4 = time.time()
-        print(f'time for all fide players scrapping {round(t4-t3, 3)}')
+        # print(f'time for all fide players scrapping {round(t4-t3, 3)}')
 
         t5 = time.time()
         await self.built_database_to_present_to_user()
         t6 = time.time()
-        print(f'time for modifiying and building the database {round(t6-t5,3)}')
+        # print(f'time for modifiying and building the database {round(t6-t5,3)}')
         
         # delete the csv and html files
         await self.delete_csv_html_files()

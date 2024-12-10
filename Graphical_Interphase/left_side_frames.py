@@ -24,7 +24,7 @@ class SideFrame1(Frame):
        
         # 0 set header
         self.label_header = Label(self, text="Configure Player's List", font= ('Arial', 16))
-        self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=10 )
+        self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=5 )
         
         # list all label and value restricitons
         self.restrictions_labels = []
@@ -309,7 +309,7 @@ class SideFrame2(Frame):
                                   text="Create New Team", 
                                   font= ('Arial', 16),
                                   )
-        self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=10 )
+        self.label_header.grid(row = 0, column = 0, columnspan= 2 , pady=5 )
 
         # 1. Team's name
         
