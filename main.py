@@ -1,4 +1,4 @@
-from tkinter import messagebox, Tk, PhotoImage
+from tkinter import messagebox, Tk, PhotoImage, END
 from tkinter.ttk import Notebook, Frame, Style
 from tkinter import Menu, Toplevel, filedialog
 
@@ -323,6 +323,9 @@ class root(Tk):
 
         #-------------------------Middle down teams notebook- created teams frames---------
         self.teams_selection_notebook = Notebook(self, ) 
+        
+        # bind the notebook to the current tab
+        self.teams_selection_notebook.bind("<<NotebookTabChanged>>", self.on_tab_switch)
                    
         self.teams_selection_notebook.grid(row=1,
                                          column=1,
@@ -344,6 +347,38 @@ class root(Tk):
         # create and import database 
         self.help_menu.add_command(label='Import Database', command=lambda: self.import_database())
     
+    def on_tab_switch(self, event):
+        '''when switching between teams-tabs get the inforamtion of the team and insert those
+        to the field on the left-bottom frame for convenience.
+        '''
+        # get the name of the team on the current displayed tab on the notebook
+        team_name = self.teams_selection_notebook.tab(tab_id='current', option='text')
+        
+        # get the info dictionary of that team
+        info = self.created_teams_dic[team_name].team_info_dic
+        
+        # set the fields on the left-bottom frame to those of the current tab-team
+        self.left_side_frame_2.team_name_entry.delete(0, END)
+        self.left_side_frame_2.team_name_entry.insert(0, info["Team's Name:"])
+        
+        self.left_side_frame_2.opponent_team_name_entry.delete(0, END)
+        self.left_side_frame_2.opponent_team_name_entry.insert(0, info["Opp. Team's Name:"])
+        
+        self.left_side_frame_2.date_of_match_entry.delete(0, END)
+        self.left_side_frame_2.date_of_match_entry.insert(0, info['Match Date:'])
+        
+        self.left_side_frame_2.tournament_name_entry.delete(0, END)
+        self.left_side_frame_2.tournament_name_entry.insert(0, info['Tournament:'])
+        
+        self.left_side_frame_2.adrress_entry.delete(0, END)
+        self.left_side_frame_2.adrress_entry.insert(0, info["Address:"])
+        
+        self.left_side_frame_2.round_entry.delete(0, END)
+        self.left_side_frame_2.round_entry.insert(0, info['Round:'])
+        
+        self.left_side_frame_2.home_court_entry.set(info['Home Court:'])
+        self.left_side_frame_2.number_of_players_entry.set(info['Number of Boards:'])
+        
     def import_database(self, ):
 
         """Open a file dialog to import a database, then reload the main window with the new database.
@@ -469,7 +504,7 @@ class root(Tk):
         If the name of the team exist in the dictionary then it updates the information of the match
         for that team to the current entries.
         '''
-        # get the new team's info
+        # get the new team's info from the left-bottom frame; no Additional Info key is present here
         new_team_info_dic = self.left_side_frame_2.get_teams_info()
 
         # 14/5/23 maybe do not allow a team with no name
@@ -533,9 +568,13 @@ class root(Tk):
                 
                 # create a json file with the information of the team
                 team_path_json = os.path.join(self.folder_teams, f'{frame.team_info_dic["Team's Name:"]}_team.json')
+                
+                # set also a key-value for the additional information
+                frame.team_info_dic['Additional Info'] = frame.additional_info_entry.get()
+                
                 with open(team_path_json, 'w', encoding='utf-8') as file:
                     json.dump(frame.team_info_dic, file)
-        
+                    
         # destroy the window
         self.destroy()
     

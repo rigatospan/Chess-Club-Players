@@ -7,6 +7,9 @@ from bs4 import BeautifulSoup
 import webbrowser
 import threading
 
+from docx import Document
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -203,7 +206,7 @@ class TeamsCreation(Frame):
         
         self.remove_team_button.grid(row=0,
                                 column=0,
-                                padx=15,
+                                padx=10,
                                 pady=5,
                                 sticky='new',
                                 )
@@ -214,7 +217,7 @@ class TeamsCreation(Frame):
                                           )
         self.remove_player_button.grid(row=0,
                                        column=1,
-                                       padx=15,
+                                       padx=10,
                                        pady=5,
                                        sticky='new',
                                        )
@@ -226,7 +229,7 @@ class TeamsCreation(Frame):
         
         self.move_player_up_button.grid(row=0,
                                        column=2,
-                                       padx=15,
+                                       padx=10,
                                        pady=5,
                                        sticky='new',
                                        )
@@ -238,7 +241,7 @@ class TeamsCreation(Frame):
         
         self.move_player_down_button.grid(row=0,
                                        column=3,
-                                       padx=15,
+                                       padx=10,
                                        pady=5,
                                        sticky='new',
                                        )
@@ -250,14 +253,25 @@ class TeamsCreation(Frame):
         
         self.export_to_pdf_button.grid(row=0,
                                        column=4,
-                                       padx=15,
+                                       padx=10,
+                                       pady=5,
+                                       sticky='new')
+        
+        self.export_to_docx_button = Button(self.buttons_frame,
+                                           text = 'export to word',
+                                           command= lambda x=self.export_to_docx : threading.Thread(target=x).start()
+                                           )
+        
+        self.export_to_docx_button.grid(row=0,
+                                       column=5,
+                                       padx=10,
                                        pady=5,
                                        sticky='new')
         
         self.buttons_frame.grid(row = 5,
                                 column=0,
                                 columnspan=6,
-                                padx=50,
+                                padx=10,
                                 sticky='ewns',
                                 )
     #-----------------------------------------------------------------------------------------------------
@@ -265,6 +279,13 @@ class TeamsCreation(Frame):
         '''Update the content of the info labels for the match to those in the team's info dictionary.
         '''
         self.team_info_dic = new_team_info_dic
+        
+        # Additional Info is present if the team is imported as a saved team 
+        if 'Additional Info' in new_team_info_dic:
+            self.additional_info_entry.insert(0, new_team_info_dic['Additional Info'])
+        
+        # set the Additional Info key; would be an empty string for new teams    
+        self.team_info_dic['Additional Info'] = self.additional_info_entry.get()
         
         self.team_name = new_team_info_dic["Team's Name:"]
         self.opponent_team_name = new_team_info_dic["Opp. Team's Name:"]
@@ -598,7 +619,66 @@ class TeamsCreation(Frame):
                             ]
 
         doc.build(pdf_elements_list)
+    
+    def export_to_docx(self,):
+        '''Export team composition to .docx file on the cwd
+        '''
+        
+        # make the necessary modifications to the database
+        database_to_print = self.team_dataframe[self.columns_to_show]
+        
+        # set or reset the index column from 1 to the number of boards
+        database_to_print['index'] = pd.Series([i for i in range(1, len(database_to_print)+1)])
 
+        # set the Fide Id column to only the id text value
+        if 'Fide ID' in database_to_print.columns:
+            database_to_print['Fide ID'] = database_to_print['Fide ID'].map(lambda x: self.extract_info(x)[0] )    
+        
+        document = Document()
+        
+        heading = document.add_heading(f'Team Composition of {self.team_name}', 0)
+        heading.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        
+        document.add_paragraph(f'Match: {self.game_title}')
+        
+        game_info_1_str = f'Tournament: {self.tournmanet},   round: {self.round},   date: {self.match_date}'
+        document.add_paragraph(game_info_1_str)
+        
+        game_info_2_str = f'Adrress: {self.adrress}'
+        document.add_paragraph(game_info_2_str)
+        
+        game_info_3_str = f'Additional Info: {self.additional_info_entry.get()}'
+        document.add_paragraph(game_info_3_str)
+        
+        # Add table
+        table = document.add_table(rows=1, cols=len(database_to_print.columns))
+        table.style = 'Table Grid'
+        
+        # Add header row; make them bold
+        hdr_cells = table.rows[0].cells
+        for i, column_name in enumerate(database_to_print.columns):
+            paragraph = hdr_cells[i].paragraphs[0]
+            run = paragraph.add_run(column_name)
+            run.bold = True
+            paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+                
+        # Add rows
+        for index, row in database_to_print.iterrows():
+            row_cells = table.add_row().cells
+            for i, value in enumerate(row):
+                row_cells[i].text = str(value)   
+                for paragraph in row_cells[i].paragraphs:
+                    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+ 
+        # leave one blank line
+        document.add_paragraph('')
+        
+        # set a line for the captain of the team without specify him
+        captain_str = "Team's Captain:"
+        document.add_paragraph(captain_str)
+        
+        document.save(f'{self.team_name}.docx')
+        
     def sort_by_column(self, column):
         '''Sorts the database wrt to the clicked column and then calls the add_rows()
         '''
