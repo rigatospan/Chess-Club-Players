@@ -17,7 +17,10 @@ class TeamsCreation(Frame):
     def __init__(self, parent, notebook, new_team_info_dic):
         super().__init__(notebook)
         self.parent = parent
-               
+        
+        # create also a dictionary attribute
+        self.team_info_dic = new_team_info_dic
+            
         # 
         self.all_headers = self.parent.original_database_all_headers
         self.columns_to_show = self.parent.original_database_headers_to_show.copy()
@@ -191,68 +194,77 @@ class TeamsCreation(Frame):
                               )
 
         #----------------------------------Add Buttons to take actions on the tree and the team-frame----------------
-        self.remove_team_button= Button(self,
+        self.buttons_frame = Frame(self,)
+        
+        self.remove_team_button= Button(self.buttons_frame,
                                    text='Remove Team',
                                    command= self.remove_team,
                                    )
         
-        self.remove_team_button.grid(row=5,
+        self.remove_team_button.grid(row=0,
                                 column=0,
-                                padx=5,
+                                padx=15,
                                 pady=5,
-                                sticky='w',
+                                sticky='new',
                                 )
         
-        self.remove_player_button = Button(self,
+        self.remove_player_button = Button(self.buttons_frame,
                                            text='Remove Selected Players',
                                            command=self.remove_player
                                           )
-        self.remove_player_button.grid(row=5,
+        self.remove_player_button.grid(row=0,
                                        column=1,
-                                       padx=5,
+                                       padx=15,
                                        pady=5,
-                                       sticky='w',
+                                       sticky='new',
                                        )
         
-        self.move_player_up_button = Button(self,
+        self.move_player_up_button = Button(self.buttons_frame,
                                               text='Move Player Up',
                                               command=self.move_player_up
                                               )
         
-        self.move_player_up_button.grid(row=5,
+        self.move_player_up_button.grid(row=0,
                                        column=2,
-                                       padx=5,
+                                       padx=15,
                                        pady=5,
-                                       sticky='w',
+                                       sticky='new',
                                        )
         
-        self.move_player_down_button = Button(self,
+        self.move_player_down_button = Button(self.buttons_frame,
                                               text='Move Player Down',
                                               command= self.move_player_down,
                                               )
         
-        self.move_player_down_button.grid(row=5,
+        self.move_player_down_button.grid(row=0,
                                        column=3,
-                                       padx=5,
+                                       padx=15,
                                        pady=5,
-                                       sticky='w',
+                                       sticky='new',
                                        )
         
-        self.export_to_pdf_button = Button(self,
+        self.export_to_pdf_button = Button(self.buttons_frame,
                                            text = 'export to pdf',
                                            command= lambda x=self.export_to_pdf : threading.Thread(target=x).start()
                                            )
         
-        self.export_to_pdf_button.grid(row=5,
+        self.export_to_pdf_button.grid(row=0,
                                        column=4,
-                                       padx=5,
+                                       padx=15,
                                        pady=5,
-                                       sticky='w')
-    
+                                       sticky='new')
+        
+        self.buttons_frame.grid(row = 5,
+                                column=0,
+                                columnspan=6,
+                                padx=50,
+                                sticky='ewns',
+                                )
     #-----------------------------------------------------------------------------------------------------
     def update_match_info(self, new_team_info_dic):
         '''Update the content of the info labels for the match to those in the team's info dictionary.
         '''
+        self.team_info_dic = new_team_info_dic
         
         self.team_name = new_team_info_dic["Team's Name:"]
         self.opponent_team_name = new_team_info_dic["Opp. Team's Name:"]

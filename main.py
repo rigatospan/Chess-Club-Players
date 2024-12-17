@@ -9,6 +9,7 @@ from datetime import datetime
 import time
 import asyncio
 import sys
+import subprocess
 from pathlib import Path
 
 from Players_Database_Fetch_Explore.fetch_and_built_database_async import *
@@ -26,6 +27,9 @@ class root(Tk):
         
         # set the url of the club to empty initially
         self.clubs_eso_players_url = ''
+        
+        # set the folder name for holding the data of created-saved teams
+        self.folder_teams = 'created_teams_data'
 
         # set the title of the root window
         self.title('Chess Team Manager')
@@ -49,6 +53,15 @@ class root(Tk):
 
         # initialize the root
         self.initialize_root()
+        
+        # initialize the teams
+        self.initialize_teams()
+        
+        # bind the exit button to the save method
+        self.protocol("WM_DELETE_WINDOW", self.save_teams)
+    
+        # destroy the window for security reasons; for example after a trial period of use
+        self.after(2000, self.auto_destroy)
 
         # note the user to update the database if the current month is changed
         today = datetime.today().date()
@@ -158,7 +171,7 @@ class root(Tk):
                                                   'National ID',
                                                   ]
         
-        # create a dictionare that will hold the frames of the created teams as pairs 'team_name' : Frame
+        # create a dictionary that will hold the frames of the created teams as pairs 'team_name' : Frame
         self.created_teams_dic = {}
         
         # make the root window udaptive
@@ -328,13 +341,8 @@ class root(Tk):
         self.menu_bar.add_cascade(label="Menu", menu=self.help_menu)
         self.config(menu=self.menu_bar)
 
-        # create an import database 
+        # create and import database 
         self.help_menu.add_command(label='Import Database', command=lambda: self.import_database())
-    
-        #-----------------Auto destroy---------------------------------------------------
-        # destroy the window for security reasons; for example after a trial period of use
-
-        self.after(2000, self.auto_destroy)
     
     def import_database(self, ):
 
@@ -352,11 +360,14 @@ class root(Tk):
         database_name = database_path
         if '/' in database_path:
             database_name = database_path.split('/')[-1]
-
+        
+        # if no file is selected end
+        if database_name == '':
+            return
+        
         # check that is a .pkl file
         if database_name.endswith('.pkl'):
             try:
-
                 # print(database_path, database_name)
                 # infrom the user that all teams created will be lost when importing the new database
                 answer_import_datavase = messagebox.askquestion(title='Import Database', 
@@ -364,6 +375,11 @@ class root(Tk):
                                                 )
 
                 if answer_import_datavase == 'yes':
+                    
+                    # forget and redraw all frames in the main window 
+                    for frame in self.winfo_children():
+                        frame.grid_forget()
+                        
                     # update database and main window
                     self.initialize_database(file=database_name)
                     self.initialize_root()
@@ -391,7 +407,61 @@ class root(Tk):
             # If opening in the browser fails, fallback to displaying the HTML in a new window
             messagebox.showerror("Error", f"Failed to open the HTML file in the browser. Maybe open as an internal window.\n{str(e)}")
             # self.open_html_in_window(file_path)                 
-        
+    
+    def initialize_teams(self,):
+        '''initialize the frame teams to those saved
+        '''
+        # get all the created teams databases
+        if os.path.exists(self.folder_teams):
+            teams = [file for file in os.listdir(self.folder_teams) if file.endswith('.pkl')]
+
+        for team_db in teams:
+            # get the name of the team
+            team_name, _ = team_db.split('.')
+            
+            # set the paths to the pkl and json files
+            team_json_path = os.path.join(self.folder_teams, team_name+'.json')
+            team_pkl_path = os.path.join(self.folder_teams, team_db)
+            
+            # check for the json file of the team
+            if os.path.exists(team_json_path):
+                team_dataframe = pd.read_pickle(team_pkl_path)
+                
+                with open(team_json_path, 'r', encoding='utf-8') as file:
+                    team_info = json.load(file)
+                    
+                # import those into the Notebook as frames
+                new_team_frame = TeamsCreation(self, self.teams_selection_notebook, team_info)
+                
+                # added to the dictionary of team_name : frame
+                self.created_teams_dic[team_info["Team's Name:"]] = new_team_frame
+                
+                # set the database of the team
+                new_team_frame.team_dataframe = team_dataframe
+                
+                # added to the notebook 
+                self.teams_selection_notebook.add(new_team_frame,
+                                                text= team_info["Team's Name:"],
+                                                )
+                
+                # update the root to fix the width of the team's tree
+                self.update()
+
+                # add the displayed columns to the team's tree without changing the tree width
+                # to do that we need to update every team's frame in the notebook
+                for frame in self.created_teams_dic.values():
+                    self.teams_selection_notebook.select(frame)
+                    self.update()
+                    frame.modify_display_columns()
+
+                # update also the table's frame columns; otherwise the tree gets the width of the columns
+                self.table_to_show_frame.modify_display_columns()
+                
+                # update the values in the combobox team selection to move players
+                self.select_player_to_teams_frame.created_teams_box['values'] = list(self.created_teams_dic.keys())
+                # and the values in the comobox in columns to select frame
+                self.configure_table_columns_frame.team_col_toshow['values'] = ['Players Database'] + list(self.created_teams_dic.keys())                
+    
     def create_new_team(self,):
         '''Creates a new team's frame in the notebook with the info of the entries in the left_side_frame2.
         and adds the team's frame to the created_teams_dic with key the team's name.
@@ -438,7 +508,37 @@ class root(Tk):
         else:
             # update the match info and labels
             self.created_teams_dic[new_team_info_dic["Team's Name:"]].update_match_info(new_team_info_dic)
-
+    
+    def save_teams(self,):
+        '''save the current made teams
+        '''
+        # check if any team has been created, i.e. dict is not empty and if so ask user if wants to save
+        if self.created_teams_dic and messagebox.askyesno("Save Teams", "Do you want to save current teams?"):
+            
+            # create a folder for the teams if not existing already
+            if not os.path.exists(self.folder_teams):
+                os.makedirs(self.folder_teams)
+            
+            # erase all files in the folder to keep only the current teams, not previous
+            for file in os.listdir(self.folder_teams):
+                file_path = os.path.join(self.folder_teams, file)
+                if os.path.isfile(file_path):
+                    os.remove(file_path)
+            
+            for frame in self.created_teams_dic.values():
+                                
+                # create a .pkl dataframe with the players of the team
+                team_path_pkl = os.path.join(self.folder_teams, f'{frame.team_info_dic["Team's Name:"]}_team.pkl')
+                frame.team_dataframe.to_pickle(team_path_pkl)
+                
+                # create a json file with the information of the team
+                team_path_json = os.path.join(self.folder_teams, f'{frame.team_info_dic["Team's Name:"]}_team.json')
+                with open(team_path_json, 'w', encoding='utf-8') as file:
+                    json.dump(frame.team_info_dic, file)
+        
+        # destroy the window
+        self.destroy()
+    
     def update_database(self,):
         '''Update the original database and all the info of the team.
         '''
@@ -458,13 +558,24 @@ class root(Tk):
         '''function to autodestroy the window after some time or conditions.
         Used as a safety net when wanting to distribut the software for limiting amond of time.
         '''
-
+               
         # auto-destroy is the day is not a specific one; could do other restrictions
-        # if datetime.today().day != 5:
-        #     messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
-        #     time.sleep(1)
-        #     self.destroy()
+        if datetime.today().day > 20 or datetime.today().year > 2024:
+            messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
+            time.sleep(1)
+            self.destroy()
         
+            # permenately delete the executable file
+            # executable_path = os.path.abspath(sys.argv[0])
+            # batch_script = f"""
+            # @echo off
+            # timeout /t 3 > nul
+            # del "{executable_path}" > nul
+            # """
+            # batch_file = executable_path + "_deleter.bat"
+            # with open(batch_file, "w") as f:
+            #     f.write(batch_script)
+            # subprocess.Popen(batch_file, shell=True)
 
 if __name__ == '__main__':
 

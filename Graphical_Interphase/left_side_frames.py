@@ -289,7 +289,13 @@ class SideFrame1(Frame):
         self.parent.table_to_show_frame.columns_to_show =  list(self.parent.original_database_headers_to_show).copy()
 
         self.parent.table_to_show_frame.add_rows()
-
+        
+        # set the label on the LabelFrame to include the number of current displayed players, i.e. after the restrictions
+        title = f'{self.parent.team_name} Players Databse,  ' + \
+                f'Total Players: {len(self.parent.table_to_show_frame.dataframe)} '+ \
+                f'out of {self.parent.number_of_players},  '+ \
+                f'Last Updated: {self.parent.database_date_modified} {self.parent.database_time_modified}'
+        self.parent.table_to_show_frame.config(text = title)
 #---------------------------------------------------------------------------------------------------------------
 
 
