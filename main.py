@@ -447,8 +447,10 @@ class root(Tk):
         '''initialize the frame teams to those saved
         '''
         # get all the created teams databases
-        if os.path.exists(self.folder_teams):
-            teams = [file for file in os.listdir(self.folder_teams) if file.endswith('.pkl')]
+        if not os.path.exists(self.folder_teams):
+            return 
+        
+        teams = [file for file in os.listdir(self.folder_teams) if file.endswith('.pkl')]
 
         for team_db in teams:
             # get the name of the team
@@ -487,6 +489,8 @@ class root(Tk):
                 for frame in self.created_teams_dic.values():
                     self.teams_selection_notebook.select(frame)
                     self.update()
+                    # set list of columns to show to those saved 
+                    frame.columns_to_show = team_info['columns_to_show']
                     frame.modify_display_columns()
 
                 # update also the table's frame columns; otherwise the tree gets the width of the columns
@@ -547,8 +551,9 @@ class root(Tk):
     def save_teams(self,):
         '''save the current made teams
         '''
+        answer = messagebox.askyesnocancel("Save Teams", "Do you want to save current teams?")
         # check if any team has been created, i.e. dict is not empty and if so ask user if wants to save
-        if self.created_teams_dic and messagebox.askyesno("Save Teams", "Do you want to save current teams?"):
+        if self.created_teams_dic and (answer is True):
             
             # create a folder for the teams if not existing already
             if not os.path.exists(self.folder_teams):
@@ -572,11 +577,20 @@ class root(Tk):
                 # set also a key-value for the additional information
                 frame.team_info_dic['Additional Info'] = frame.additional_info_entry.get()
                 
+                # set also a key-value for the columns_to_show : ['index', 'National Name', ...]
+                frame.team_info_dic['columns_to_show'] = frame.columns_to_show
+                
                 with open(team_path_json, 'w', encoding='utf-8') as file:
                     json.dump(frame.team_info_dic, file)
                     
-        # destroy the window
-        self.destroy()
+            # destroy the window
+            self.destroy()
+        elif answer is False:
+            # destroy the window
+            self.destroy()
+        else:
+            # do not destroy the window is the user select 'cancel'
+            return
     
     def update_database(self,):
         '''Update the original database and all the info of the team.

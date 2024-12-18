@@ -213,7 +213,8 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
 
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
-        col_name = self.tree.column(col, option="id")
+        # check whether col is a valid string literal ('#4' for the fourth column) or an empty string
+        col_name = self.tree.column(col, option="id") if col else None
    
         if row !='' and col_name == 'Fide ID':
             row_n = int(self.tree.item(row)['text'])
@@ -226,7 +227,12 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
         '''
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
-        col_name = self.tree.column(col, option="id")
+
+        # 18/12 check whether col is a valid string literal ('#4' for the fourth column) or an empty string
+        # when the cunsor enters in an area of the Treeview that there is no column 
+        # (e.g. by shrinking the widths of columns), col is an empty string
+        col_name = self.tree.column(col, option="id") if col else None
+
         if row !='' and col_name == 'Fide ID':
             self.tree.config(cursor='hand2')
         else:

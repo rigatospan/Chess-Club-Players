@@ -13,6 +13,9 @@
 # pdf files
 *.pdf
 
+# docx files
+*.docx
+
 # scratch python files
 scratch*
 

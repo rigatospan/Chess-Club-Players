@@ -416,7 +416,8 @@ class TeamsCreation(Frame):
     def open_url(self, event):
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
-        col_name = self.tree.column(col, option="id")
+        # check whether col is a valid string literal ('#4' for the fourth column) or an empty string
+        col_name = self.tree.column(col, option="id") if col else None
    
         if row !='' and col_name == 'Fide ID':
             row_n = int(self.tree.item(row)['text'])
@@ -427,7 +428,8 @@ class TeamsCreation(Frame):
     def enter_fide_id_col(self, event):
         row = self.tree.identify_row(event.y)
         col = self.tree.identify_column(event.x)
-        col_name = self.tree.column(col, option="id")
+        # check whether col is a valid string literal ('#4' for the fourth column) or an empty string
+        col_name = self.tree.column(col, option="id") if col else None
         if row !='' and col_name == 'Fide ID':
             self.tree.config(cursor='hand2')
         else:
@@ -557,68 +559,75 @@ class TeamsCreation(Frame):
         # make the necessary modifications to the database
         database_to_print = self.team_dataframe[self.columns_to_show]
         # set or reset the index column from 1 to the number of boards
-        database_to_print['index'] = pd.Series([i for i in range(1, len(database_to_print)+1)])
+        database_to_print.loc[:, 'index'] = range(1, len(database_to_print)+1)
 
         # set the Fide Id column to only the id text value
         if 'Fide ID' in database_to_print.columns:
             database_to_print['Fide ID'] = database_to_print['Fide ID'].map(lambda x: self.extract_info(x)[0] )
         
-        doc = SimpleDocTemplate(f'{self.team_name}.pdf', pagesize=letter)
-        styles = getSampleStyleSheet()
+        # set a try-except clauset to cacth a permission error if the same file is already opened and cannot be replaced
+        try:
+            doc = SimpleDocTemplate(f'{self.team_name}.pdf', pagesize=letter)
+            styles = getSampleStyleSheet()
 
-        game_info_style = ParagraphStyle(name='Normal',
-                                        # fontName='Helvetica',
-                                        fontSize=10,
-                                        leading=14,
-                                        )
+            game_info_style = ParagraphStyle(name='Normal',
+                                            # fontName='Helvetica',
+                                            fontSize=10,
+                                            leading=14,
+                                            )
 
-        title = Paragraph(f'Team Composition of {self.team_name}', styles['Title'])
-        
-        match_name = Paragraph(f'Match: {self.game_title}', styles['Title'])
-        
-        game_info_1_str = f'Tournament: {self.tournmanet},   round: {self.round},   date: {self.match_date}'
-        game_info_1 = Paragraph(game_info_1_str, game_info_style)
+            title = Paragraph(f'Team Composition of {self.team_name}', styles['Title'])
+            
+            match_name = Paragraph(f'Match: {self.game_title}', styles['Title'])
+            
+            game_info_1_str = f'Tournament: {self.tournmanet},   round: {self.round},   date: {self.match_date}'
+            game_info_1 = Paragraph(game_info_1_str, game_info_style)
 
-        game_info_2_str = f'Adrress: {self.adrress}'
-        game_info_2 = Paragraph(game_info_2_str, game_info_style)
+            game_info_2_str = f'Adrress: {self.adrress}'
+            game_info_2 = Paragraph(game_info_2_str, game_info_style)
 
-        game_info_3_str = f'Additional Info: {self.additional_info_entry.get()}'
-        game_info_3 = Paragraph(game_info_3_str, game_info_style)
+            game_info_3_str = f'Additional Info: {self.additional_info_entry.get()}'
+            game_info_3 = Paragraph(game_info_3_str, game_info_style)
 
-        # creating the table
-        data = [database_to_print.columns.tolist()] + database_to_print.values.tolist()
+            # creating the table
+            data = [database_to_print.columns.tolist()] + database_to_print.values.tolist()
 
-        table = Table(data)
+            table = Table(data)
 
-        table_style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                              ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                              ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                              ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                              ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                              ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                              ('GRID', (0, 0), (-1, -1), 1, colors.black)])
+            table_style = TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                                ('GRID', (0, 0), (-1, -1), 1, colors.black)])
 
-        table.setStyle(table_style)
+            table.setStyle(table_style)
 
-        captain_str = "Team's Captain:"
-        captain = Paragraph(captain_str, game_info_style)
-        
-        pdf_elements_list = [title,
-                            Spacer(0,10),
-                            match_name,
-                            Spacer(0,10),
-                            game_info_1,
-                            Spacer(0,10),
-                            game_info_2,
-                            Spacer(0,10),
-                            game_info_3,
-                            Spacer(0,20),
-                            table,
-                            Spacer(0,20),
-                            captain,
-                            ]
+            captain_str = "Team's Captain:"
+            captain = Paragraph(captain_str, game_info_style)
+            
+            pdf_elements_list = [title,
+                                Spacer(0,10),
+                                match_name,
+                                Spacer(0,10),
+                                game_info_1,
+                                Spacer(0,10),
+                                game_info_2,
+                                Spacer(0,10),
+                                game_info_3,
+                                Spacer(0,20),
+                                table,
+                                Spacer(0,20),
+                                captain,
+                                ]
 
-        doc.build(pdf_elements_list)
+            doc.build(pdf_elements_list)
+        except PermissionError:
+            m = 'pdf generation failed. Ensure that a previous generated pdf file with the same team name is not opened and try again.'
+            messagebox.showerror(title='pdf failed', message=m)
+        except:
+            messagebox.showerror(title='pdf failed', message='Could not generate the pdf file. Close windows and try again.')
     
     def export_to_docx(self,):
         '''Export team composition to .docx file on the cwd
@@ -628,57 +637,64 @@ class TeamsCreation(Frame):
         database_to_print = self.team_dataframe[self.columns_to_show]
         
         # set or reset the index column from 1 to the number of boards
-        database_to_print['index'] = pd.Series([i for i in range(1, len(database_to_print)+1)])
+        database_to_print.loc[:, 'index'] = range(1, len(database_to_print)+1)
 
         # set the Fide Id column to only the id text value
         if 'Fide ID' in database_to_print.columns:
             database_to_print['Fide ID'] = database_to_print['Fide ID'].map(lambda x: self.extract_info(x)[0] )    
         
-        document = Document()
-        
-        heading = document.add_heading(f'Team Composition of {self.team_name}', 0)
-        heading.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-        
-        document.add_paragraph(f'Match: {self.game_title}')
-        
-        game_info_1_str = f'Tournament: {self.tournmanet},   round: {self.round},   date: {self.match_date}'
-        document.add_paragraph(game_info_1_str)
-        
-        game_info_2_str = f'Adrress: {self.adrress}'
-        document.add_paragraph(game_info_2_str)
-        
-        game_info_3_str = f'Additional Info: {self.additional_info_entry.get()}'
-        document.add_paragraph(game_info_3_str)
-        
-        # Add table
-        table = document.add_table(rows=1, cols=len(database_to_print.columns))
-        table.style = 'Table Grid'
-        
-        # Add header row; make them bold
-        hdr_cells = table.rows[0].cells
-        for i, column_name in enumerate(database_to_print.columns):
-            paragraph = hdr_cells[i].paragraphs[0]
-            run = paragraph.add_run(column_name)
-            run.bold = True
-            paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
-                
-        # Add rows
-        for index, row in database_to_print.iterrows():
-            row_cells = table.add_row().cells
-            for i, value in enumerate(row):
-                row_cells[i].text = str(value)   
-                for paragraph in row_cells[i].paragraphs:
-                    paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
- 
-        # leave one blank line
-        document.add_paragraph('')
-        
-        # set a line for the captain of the team without specify him
-        captain_str = "Team's Captain:"
-        document.add_paragraph(captain_str)
-        
-        document.save(f'{self.team_name}.docx')
-        
+        # set a try-except clauset to cacth a permission error if the same file is already opened and cannot be replaced
+        try:
+            document = Document()
+            
+            heading = document.add_heading(f'Team Composition of {self.team_name}', 0)
+            heading.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            
+            document.add_paragraph(f'Match: {self.game_title}')
+            
+            game_info_1_str = f'Tournament: {self.tournmanet},   round: {self.round},   date: {self.match_date}'
+            document.add_paragraph(game_info_1_str)
+            
+            game_info_2_str = f'Adrress: {self.adrress}'
+            document.add_paragraph(game_info_2_str)
+            
+            game_info_3_str = f'Additional Info: {self.additional_info_entry.get()}'
+            document.add_paragraph(game_info_3_str)
+            
+            # Add table
+            table = document.add_table(rows=1, cols=len(database_to_print.columns))
+            table.style = 'Table Grid'
+            
+            # Add header row; make them bold
+            hdr_cells = table.rows[0].cells
+            for i, column_name in enumerate(database_to_print.columns):
+                paragraph = hdr_cells[i].paragraphs[0]
+                run = paragraph.add_run(column_name)
+                run.bold = True
+                paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+                    
+            # Add rows
+            for index, row in database_to_print.iterrows():
+                row_cells = table.add_row().cells
+                for i, value in enumerate(row):
+                    row_cells[i].text = str(value)   
+                    for paragraph in row_cells[i].paragraphs:
+                        paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+    
+            # leave one blank line
+            document.add_paragraph('')
+            
+            # set a line for the captain of the team without specify him
+            captain_str = "Team's Captain:"
+            document.add_paragraph(captain_str)
+            
+            document.save(f'{self.team_name}.docx')
+        except PermissionError:
+            m = 'Docx generation failed. Ensure that a previous generated docx file with the same team name is not opened and try again.'
+            messagebox.showerror(title='docx failed', message=m)
+        except:
+            messagebox.showerror(title='docx failed', message='Could not generate the docx file. Close windows and try again.')
+            
     def sort_by_column(self, column):
         '''Sorts the database wrt to the clicked column and then calls the add_rows()
         '''
