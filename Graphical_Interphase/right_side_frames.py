@@ -439,7 +439,7 @@ class SideFrame3(Frame):
         if answer_update_database == 'yes':
 
             try:
-                response = requests.get(self.parent.clubs_eso_players_url)  # Timeout set to 5 seconds
+                response = requests.get(self.parent.clubs_eso_players_url)
                 if response.status_code == 200:
                     print(f"Successfully connected to {self.parent.clubs_eso_players_url}")
 

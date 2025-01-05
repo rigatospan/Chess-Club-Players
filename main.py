@@ -57,6 +57,10 @@ class root(Tk):
         # initialize the teams
         self.initialize_teams()
         
+        # notebook_height = self.teams_selection_notebook.winfo_reqheight()
+        # print(f'notebook height is {notebook_height} ')
+        # print(f'height of table {self.table_to_show_frame.winfo_reqheight()}')
+         
         # bind the exit button to the save method
         self.protocol("WM_DELETE_WINDOW", self.save_teams)
     
@@ -302,8 +306,14 @@ class root(Tk):
 
         # print(f'width of the Treeview Database {self.tree_width}')
         
+        # calculate the number of displayed rows in the table dynamically as follows; 
+        # 400 is the height of the notebook with a full team of 10 rows, 
+        # 150 is the headers+title and 20 is the height of each row
+        n = (screen_height - 400 - 150) // 20
+        # print(f'number of rows dynamically {n}')
+        
         # create the middle-top LabelFrame
-        self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self)
+        self.table_to_show_frame = RestrictedPlayersDatabaseFrame(self, number_of_rows = n)
         self.table_to_show_frame.grid(row=0, 
                                       column=1, 
                                       padx= 5, 
@@ -351,33 +361,38 @@ class root(Tk):
         '''when switching between teams-tabs get the inforamtion of the team and insert those
         to the field on the left-bottom frame for convenience.
         '''
-        # get the name of the team on the current displayed tab on the notebook
-        team_name = self.teams_selection_notebook.tab(tab_id='current', option='text')
-        
-        # get the info dictionary of that team
-        info = self.created_teams_dic[team_name].team_info_dic
-        
-        # set the fields on the left-bottom frame to those of the current tab-team
+        # clear all fields
         self.left_side_frame_2.team_name_entry.delete(0, END)
-        self.left_side_frame_2.team_name_entry.insert(0, info["Team's Name:"])
-        
         self.left_side_frame_2.opponent_team_name_entry.delete(0, END)
-        self.left_side_frame_2.opponent_team_name_entry.insert(0, info["Opp. Team's Name:"])
-        
         self.left_side_frame_2.date_of_match_entry.delete(0, END)
-        self.left_side_frame_2.date_of_match_entry.insert(0, info['Match Date:'])
-        
         self.left_side_frame_2.tournament_name_entry.delete(0, END)
-        self.left_side_frame_2.tournament_name_entry.insert(0, info['Tournament:'])
-        
         self.left_side_frame_2.adrress_entry.delete(0, END)
-        self.left_side_frame_2.adrress_entry.insert(0, info["Address:"])
-        
         self.left_side_frame_2.round_entry.delete(0, END)
-        self.left_side_frame_2.round_entry.insert(0, info['Round:'])
         
-        self.left_side_frame_2.home_court_entry.set(info['Home Court:'])
-        self.left_side_frame_2.number_of_players_entry.set(info['Number of Boards:'])
+        # check if there is any team left in the tab dictionary
+        if self.created_teams_dic:
+            pass
+            # get the name of the team on the current displayed tab on the notebook
+            team_name = self.teams_selection_notebook.tab(tab_id='current', option='text')
+            
+            # get the info dictionary of that team
+            info = self.created_teams_dic[team_name].team_info_dic
+            
+            # set the fields on the left-bottom frame to those of the current tab-team
+            self.left_side_frame_2.team_name_entry.insert(0, info["Team's Name:"])
+            
+            self.left_side_frame_2.opponent_team_name_entry.insert(0, info["Opp. Team's Name:"])
+            
+            self.left_side_frame_2.date_of_match_entry.insert(0, info['Match Date:'])
+            
+            self.left_side_frame_2.tournament_name_entry.insert(0, info['Tournament:'])
+            
+            self.left_side_frame_2.adrress_entry.insert(0, info["Address:"])
+            
+            self.left_side_frame_2.round_entry.insert(0, info['Round:'])
+            
+            self.left_side_frame_2.home_court_entry.set(info['Home Court:'])
+            self.left_side_frame_2.number_of_players_entry.set(info['Number of Boards:'])
         
     def import_database(self, ):
 
@@ -551,9 +566,9 @@ class root(Tk):
     def save_teams(self,):
         '''save the current made teams
         '''
+        # ask user if he wants to save the teams
         answer = messagebox.askyesnocancel("Save Teams", "Do you want to save current teams?")
-        # check if any team has been created, i.e. dict is not empty and if so ask user if wants to save
-        if self.created_teams_dic and (answer is True):
+        if answer is True:
             
             # create a folder for the teams if not existing already
             if not os.path.exists(self.folder_teams):
@@ -613,7 +628,7 @@ class root(Tk):
         '''
                
         # auto-destroy is the day is not a specific one; could do other restrictions
-        if datetime.today().day > 20 or datetime.today().year > 2024:
+        if datetime.today().year != 2025:
             messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
             time.sleep(1)
             self.destroy()

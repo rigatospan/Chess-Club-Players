@@ -7,7 +7,7 @@ import webbrowser
 
 class RestrictedPlayersDatabaseFrame(LabelFrame):
 
-    def __init__(self, parent):
+    def __init__(self, parent, number_of_rows = 13):
 
         super().__init__(parent, 
                          text= f'{parent.team_name} Players Databse,  Total Players: {parent.number_of_players},  Last Updated: {parent.database_date_modified} {parent.database_time_modified}',
@@ -34,7 +34,7 @@ class RestrictedPlayersDatabaseFrame(LabelFrame):
                         columns=self.all_headers,
                         show="headings",
                         # displaycolumns= self.columns_to_show, # choose which columns to display
-                        height= 12, # number of rows to display at a time
+                        height= number_of_rows, # number of rows to display at a time
                         )
         
         # set the total default width of the tree
