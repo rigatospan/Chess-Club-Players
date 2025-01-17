@@ -36,6 +36,7 @@ class root(Tk):
 
         # set the window to full screen
         self.state('zoomed')
+        # self.geometry('1280x1100')
 
         # make the window not resisable
         # self.resizable(False, False)
@@ -60,6 +61,8 @@ class root(Tk):
         # notebook_height = self.teams_selection_notebook.winfo_reqheight()
         # print(f'notebook height is {notebook_height} ')
         # print(f'height of table {self.table_to_show_frame.winfo_reqheight()}')
+        # print(f'width of the notebook is {self.teams_selection_notebook.winfo_reqwidth()}')
+        # print(f'width of screen: {self.winfo_screenwidth()}, height: {self.winfo_screenheight()}')
          
         # bind the exit button to the save method
         self.protocol("WM_DELETE_WINDOW", self.save_teams)
@@ -298,7 +301,8 @@ class root(Tk):
         right_frame_width = self.right_side_frame.winfo_reqwidth()
         screen_height, screen_width = self.winfo_screenheight(), self.winfo_screenwidth()
         
-        # print(f'left frame {left_frame_width}, right frame {right_frame_width}')
+        # print(f'width of left frame {left_frame_width}, width of right frame {right_frame_width}')
+        # print(f'height of left frame {self.left_side_frame.winfo_reqheight()}, height of right frame {self.right_side_frame.winfo_reqheight()}')       
         # print(f'height of screen {screen_height}, width of screen {screen_width}')
         
         # allocate the remaining avaliable width to the Treevies Database, minus some number fro padding etc.
@@ -330,6 +334,7 @@ class root(Tk):
         # add the displayed columns to the tree without changing its width
         self.table_to_show_frame.modify_display_columns()
         
+        # print(f"width of table frame: {self.table_to_show_frame.winfo_reqwidth()}, width of tree: {self.tree_width}")
 
         #-------------------------Middle down teams notebook- created teams frames---------
         self.teams_selection_notebook = Notebook(self, ) 
@@ -496,6 +501,9 @@ class root(Tk):
                                                 text= team_info["Team's Name:"],
                                                 )
                 
+                # set the list of columns to show of that team to those saved 
+                new_team_frame.columns_to_show = team_info['columns_to_show']
+                
                 # update the root to fix the width of the team's tree
                 self.update()
 
@@ -504,8 +512,6 @@ class root(Tk):
                 for frame in self.created_teams_dic.values():
                     self.teams_selection_notebook.select(frame)
                     self.update()
-                    # set list of columns to show to those saved 
-                    frame.columns_to_show = team_info['columns_to_show']
                     frame.modify_display_columns()
 
                 # update also the table's frame columns; otherwise the tree gets the width of the columns
