@@ -634,22 +634,10 @@ class root(Tk):
         '''
                
         # auto-destroy is the day is not a specific one; could do other restrictions
-        if datetime.today().year != 2025:
+        if datetime.today().year != 2025 and datetime.today().month >= 3:
             messagebox.showwarning(title='Time is Out', message='Your time is out, Contact the Ponny to renew!')
             time.sleep(1)
             self.destroy()
-        
-            # permenately delete the executable file
-            # executable_path = os.path.abspath(sys.argv[0])
-            # batch_script = f"""
-            # @echo off
-            # timeout /t 3 > nul
-            # del "{executable_path}" > nul
-            # """
-            # batch_file = executable_path + "_deleter.bat"
-            # with open(batch_file, "w") as f:
-            #     f.write(batch_script)
-            # subprocess.Popen(batch_file, shell=True)
 
 if __name__ == '__main__':
 
