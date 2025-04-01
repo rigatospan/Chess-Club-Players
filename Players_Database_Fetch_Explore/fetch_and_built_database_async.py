@@ -67,34 +67,45 @@ class FetchPlayersDatabase:
         if soup.title == None:
             return None
         
-        # find the fide name of the player, removing unnecessary characters
+        # find the fide name of the player, removing unnecessary characters, as of 3/25 there is FIDE Profile in the title
         player_name  = soup.title.text
-        player_name = player_name.replace('"','')
+        # some players have a comma in their name, some a dot 'only one actually: diplas michail
+        char_to_split = ',' if ',' in player_name else '.'
+        
+        surname, name = player_name.split(char_to_split)
+        name = name.split()[0]
         
         # define the dictionary to be returned and add the name of the player
-        elo_dict = {'fide name': ''.join(player_name.split(','))}
-        
-        # loop through the tags for the values of std, rapid and blitz elo
-        for tag in soup.find_all('span', class_='profile-top-rating-dataDesc'):
+        elo_dict = {'fide name': ' '.join([surname, name])}
             
-            # return to parent tag to include the type of elo and the value
-            elo_type_value = self.remove_newlines_tabs_spaces(tag.parent.text).split()
-
-            # as of 1/12/24 they added an inactive tag, if elo is inactive the elo_type = ['inactive', 'std', '2000']
-            if 'inactive' in elo_type_value:
-                elo_type_value.remove('inactive')
-
-           # take the elo_type and elo_value; 
-           # as of 28/4/24: elo_type_value = ['std','2000','28'] with '28' the upgrade for the current month, discard this
-           # if the player is not graded: elo_type_value = ['std','Not','Rated'], keep only the 'Not'
-            elo_type, elo_value = elo_type_value[0], elo_type_value[1]
+        # find the three types of elo values
+        elo_tag = soup.find('div', class_='profile-games')
+        for elo_type_tag in elo_tag:
             
-            # store elo type-values     
+            # find the elo type, value and inactive status
+            elo_type_value = self.remove_newlines_tabs_spaces(elo_type_tag.text)
+            
+            # find the type and value of the elo; if Not rated set value as 0
+            if 'STANDARD' in elo_type_value:
+                elo_type = 'std'
+            elif 'RAPID' in elo_type_value:
+                elo_type = 'rapid'
+            elif 'BLITZ' in elo_type_value:
+                elo_type = 'blitz'
+            else:
+                continue
+                
+            if 'Not rated' in elo_type_value:
+                elo_value = '0'
+            else:
+                elo_value = elo_type_value[0:4]
+            
+            # store elo type-values
             elo_dict[elo_type] = elo_value
     
         # find additional information, here only federation,
         # loop thorugh tags for Global, National and European rank amond all and active players             
-        for tag in soup.find_all('table', class_="profile-table profile-table_offset_3"):
+        for tag in soup.find_all('div', class_="profile-rank-block"):
             info = self.remove_newlines_tabs_spaces(tag.text)
             
             # only keep the native rankings
@@ -106,16 +117,25 @@ class FetchPlayersDatabase:
                 
                 # store the federation, all and active rank
                 elo_dict['federation'] = federation
-                elo_dict['National Rank All'] = national_ranks[0]
-                elo_dict['National Rank Active'] = national_ranks[1]
+                elo_dict['National Rank All'] = national_ranks[1]
+                elo_dict['National Rank Active'] = national_ranks[0]
+        # if the player is not rated set them to 0
+        if 'federation' not in elo_dict:
+            elo_dict['federation'] = 'GRE'
+            elo_dict['National Rank All'] = 0
+            elo_dict['National Rank Active'] = 0
+            
+        # find the title of the player, if any else set it to '0'
+        title_tag = soup.find('div', class_='profile-info-title')
+        if title_tag:
+            title = title_tag.text.strip()
+            if title == 'None':
+                title = '0'
+            elo_dict['Fide Title'] = title
 
-            if 'Titles' in info:
-                title = re.search(r'(\(.*\))', info)
-                title = title.groups()[0]
-                elo_dict['Fide Title'] = title
-            else:
-                elo_dict['Fide Title'] = '0'
-    
+        # uncomment the follwing line to check the information 
+        # print(elo_dict)
+        
         return elo_dict
     
     #--------------------------------------Get Club National Elo information for all players-------------------------------------------
@@ -409,6 +429,9 @@ class FetchPlayersDatabase:
 if __name__ == '__main__':
     so_aigaleo_players_url = 'https://chesstu.be/eso/club/01151'
     so_aigaleo = FetchPlayersDatabase(None, so_aigaleo_players_url)
+    
+    # use the following line to fetch the database of all players
     asyncio.run(so_aigaleo.main_fetch_built_database())
-    # asyncio.run(so_aigaleo.web_page_rating_scrab(players_url='https://ratings.fide.com/profile/4204123'))
-
+    
+    # use the following line to test for only one player if the information is correct and the website is the same
+    # asyncio.run(so_aigaleo.web_page_rating_scrab(players_url='https://ratings.fide.com/profile/4233395'))
